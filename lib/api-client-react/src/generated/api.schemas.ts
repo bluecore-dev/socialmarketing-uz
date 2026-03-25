@@ -356,9 +356,17 @@ export type GetCaseStudiesParams = {
   featured?: string;
 };
 
+export type DeleteService200 = {
+  success?: boolean;
+};
+
 export type GetBannersParams = {
   type?: string;
   lang?: string;
+};
+
+export type DeleteNotification200 = {
+  success?: boolean;
 };
 
 export type GetUsersParams = {

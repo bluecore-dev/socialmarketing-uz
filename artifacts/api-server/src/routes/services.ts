@@ -65,4 +65,25 @@ router.put("/:id", requireAuth, requireRole("admin"), async (req: AuthRequest, r
   }
 });
 
+router.delete("/:id", requireAuth, requireRole("admin"), async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(String(req.params["id"]));
+    await db.delete(servicesTable).where(eq(servicesTable.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server xatosi" });
+  }
+});
+
+router.get("/admin/all", requireAuth, requireRole("admin", "manager"), async (req: AuthRequest, res) => {
+  try {
+    const services = await db.select().from(servicesTable).orderBy(asc(servicesTable.order));
+    res.json(services);
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server xatosi" });
+  }
+});
+
 export default router;

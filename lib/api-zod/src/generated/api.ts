@@ -619,6 +619,28 @@ export const GetServiceResponse = zod.object({
 });
 
 /**
+ * @summary Get all services including inactive (admin)
+ */
+export const GetAllServicesAdminResponseItem = zod.object({
+  id: zod.number(),
+  slug: zod.string(),
+  icon: zod.string().optional(),
+  order: zod.number().optional(),
+  active: zod.boolean(),
+  content: zod.object({
+    uz: zod.object({}).passthrough().optional(),
+    ru: zod.object({}).passthrough().optional(),
+    en: zod.object({}).passthrough().optional(),
+  }),
+  pricing: zod.object({}).passthrough().optional(),
+  createdAt: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+export const GetAllServicesAdminResponse = zod.array(
+  GetAllServicesAdminResponseItem,
+);
+
+/**
  * @summary Update a service (admin)
  */
 export const UpdateServiceParams = zod.object({
@@ -652,6 +674,17 @@ export const UpdateServiceResponse = zod.object({
   pricing: zod.object({}).passthrough().optional(),
   createdAt: zod.string().optional(),
   updatedAt: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a service (admin)
+ */
+export const DeleteServiceParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteServiceResponse = zod.object({
+  success: zod.boolean().optional(),
 });
 
 /**
@@ -803,6 +836,43 @@ export const MarkNotificationReadResponse = zod.object({
   read: zod.boolean(),
   link: zod.string().optional(),
   createdAt: zod.string().optional(),
+});
+
+/**
+ * @summary Update a notification (admin)
+ */
+export const UpdateNotificationParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateNotificationBody = zod.object({
+  title: zod.string(),
+  body: zod.string(),
+  type: zod.string().optional(),
+  link: zod.string().optional(),
+  userId: zod.number().optional(),
+});
+
+export const UpdateNotificationResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number().optional(),
+  type: zod.string(),
+  title: zod.string(),
+  body: zod.string(),
+  read: zod.boolean(),
+  link: zod.string().optional(),
+  createdAt: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a notification (admin)
+ */
+export const DeleteNotificationParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteNotificationResponse = zod.object({
+  success: zod.boolean().optional(),
 });
 
 /**

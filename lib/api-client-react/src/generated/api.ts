@@ -29,6 +29,8 @@ import type {
   CaseStudyInput,
   ChangePasswordBody,
   CreateLeadRequest,
+  DeleteNotification200,
+  DeleteService200,
   ExportLeadsCsvParams,
   FlowDataPoint,
   ForgotPasswordBody,
@@ -2772,6 +2774,81 @@ export function useGetService<
 }
 
 /**
+ * @summary Get all services including inactive (admin)
+ */
+export const getGetAllServicesAdminUrl = () => {
+  return `/api/services/admin/all`;
+};
+
+export const getAllServicesAdmin = async (
+  options?: RequestInit,
+): Promise<Service[]> => {
+  return customFetch<Service[]>(getGetAllServicesAdminUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAllServicesAdminQueryKey = () => {
+  return [`/api/services/admin/all`] as const;
+};
+
+export const getGetAllServicesAdminQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAllServicesAdmin>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAllServicesAdmin>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAllServicesAdminQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAllServicesAdmin>>
+  > = ({ signal }) => getAllServicesAdmin({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAllServicesAdmin>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAllServicesAdminQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAllServicesAdmin>>
+>;
+export type GetAllServicesAdminQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all services including inactive (admin)
+ */
+
+export function useGetAllServicesAdmin<
+  TData = Awaited<ReturnType<typeof getAllServicesAdmin>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAllServicesAdmin>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAllServicesAdminQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Update a service (admin)
  */
 export const getUpdateServiceUrl = (id: string) => {
@@ -2856,6 +2933,90 @@ export const useUpdateService = <
   TContext
 > => {
   return useMutation(getUpdateServiceMutationOptions(options));
+};
+
+/**
+ * @summary Delete a service (admin)
+ */
+export const getDeleteServiceUrl = (id: string) => {
+  return `/api/services/${id}`;
+};
+
+export const deleteService = async (
+  id: string,
+  options?: RequestInit,
+): Promise<DeleteService200> => {
+  return customFetch<DeleteService200>(getDeleteServiceUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteServiceMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteService>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteService>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deleteService"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteService>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteService(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteServiceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteService>>
+>;
+
+export type DeleteServiceMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a service (admin)
+ */
+export const useDeleteService = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteService>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteService>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getDeleteServiceMutationOptions(options));
 };
 
 /**
@@ -3692,6 +3853,177 @@ export const useMarkAllNotificationsRead = <
   TContext
 > => {
   return useMutation(getMarkAllNotificationsReadMutationOptions(options));
+};
+
+/**
+ * @summary Update a notification (admin)
+ */
+export const getUpdateNotificationUrl = (id: string) => {
+  return `/api/notifications/${id}`;
+};
+
+export const updateNotification = async (
+  id: string,
+  notificationInput: NotificationInput,
+  options?: RequestInit,
+): Promise<Notification> => {
+  return customFetch<Notification>(getUpdateNotificationUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(notificationInput),
+  });
+};
+
+export const getUpdateNotificationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateNotification>>,
+    TError,
+    { id: string; data: BodyType<NotificationInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateNotification>>,
+  TError,
+  { id: string; data: BodyType<NotificationInput> },
+  TContext
+> => {
+  const mutationKey = ["updateNotification"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateNotification>>,
+    { id: string; data: BodyType<NotificationInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateNotification(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateNotificationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateNotification>>
+>;
+export type UpdateNotificationMutationBody = BodyType<NotificationInput>;
+export type UpdateNotificationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a notification (admin)
+ */
+export const useUpdateNotification = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateNotification>>,
+    TError,
+    { id: string; data: BodyType<NotificationInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateNotification>>,
+  TError,
+  { id: string; data: BodyType<NotificationInput> },
+  TContext
+> => {
+  return useMutation(getUpdateNotificationMutationOptions(options));
+};
+
+/**
+ * @summary Delete a notification (admin)
+ */
+export const getDeleteNotificationUrl = (id: string) => {
+  return `/api/notifications/${id}`;
+};
+
+export const deleteNotification = async (
+  id: string,
+  options?: RequestInit,
+): Promise<DeleteNotification200> => {
+  return customFetch<DeleteNotification200>(getDeleteNotificationUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteNotificationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteNotification>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteNotification>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deleteNotification"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteNotification>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteNotification(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteNotificationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteNotification>>
+>;
+
+export type DeleteNotificationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a notification (admin)
+ */
+export const useDeleteNotification = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteNotification>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteNotification>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getDeleteNotificationMutationOptions(options));
 };
 
 /**

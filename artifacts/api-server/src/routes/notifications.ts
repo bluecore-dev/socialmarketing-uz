@@ -69,4 +69,33 @@ router.patch("/:id/read", requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
+router.patch("/:id", requireAuth, requireRole("admin"), async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(String(req.params["id"]));
+    const { title, body, type, link } = req.body;
+    const [notif] = await db.update(notificationsTable).set({
+      ...(title && { title }),
+      ...(body && { body }),
+      ...(type && { type }),
+      ...(link !== undefined && { link }),
+    }).where(eq(notificationsTable.id, id)).returning();
+    if (!notif) { res.status(404).json({ error: "Bildirishnoma topilmadi" }); return; }
+    res.json(notif);
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server xatosi" });
+  }
+});
+
+router.delete("/:id", requireAuth, requireRole("admin"), async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(String(req.params["id"]));
+    await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server xatosi" });
+  }
+});
+
 export default router;
