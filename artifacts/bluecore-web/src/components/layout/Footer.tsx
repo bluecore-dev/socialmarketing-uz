@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
-import { Instagram, Youtube, Send, MessageCircle } from "lucide-react"; // Using Send as Telegram placeholder, MessageCircle as TikTok placeholder
+import { Instagram, Youtube, Send, MessageCircle } from "lucide-react";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -41,7 +41,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">Menyu</h4>
+            <h4 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">{t('footer.menu')}</h4>
             <ul className="space-y-3">
               <li><Link href="/" className="text-muted-foreground hover:text-accent transition-colors">{t('nav.home')}</Link></li>
               <li><Link href="/services" className="text-muted-foreground hover:text-accent transition-colors">{t('nav.services')}</Link></li>
@@ -51,19 +51,19 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">Xizmatlar</h4>
+            <h4 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">{t('footer.services')}</h4>
             <ul className="space-y-3 text-muted-foreground">
-              <li className="hover:text-accent transition-colors cursor-pointer">SMM Boshqaruv</li>
-              <li className="hover:text-accent transition-colors cursor-pointer">Targeting</li>
-              <li className="hover:text-accent transition-colors cursor-pointer">Kontent Yaratish</li>
-              <li className="hover:text-accent transition-colors cursor-pointer">Reels & TikTok</li>
+              <li className="hover:text-accent transition-colors cursor-pointer">{t('footer.serviceItems.smm')}</li>
+              <li className="hover:text-accent transition-colors cursor-pointer">{t('footer.serviceItems.targeting')}</li>
+              <li className="hover:text-accent transition-colors cursor-pointer">{t('footer.serviceItems.content')}</li>
+              <li className="hover:text-accent transition-colors cursor-pointer">{t('footer.serviceItems.reels')}</li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">Aloqa</h4>
+            <h4 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">{t('footer.contact')}</h4>
             <ul className="space-y-3 text-muted-foreground text-sm">
-              <li>Toshkent sh., Yunusobod tumani, 14-mavze</li>
+              <li>{t('footer.address')}</li>
               <li><a href="tel:+998911419988" className="hover:text-accent transition-colors font-semibold text-white">+998 91 141 99 88</a></li>
               <li><a href="mailto:info@socialmarketing.uz" className="hover:text-accent transition-colors">info@socialmarketing.uz</a></li>
             </ul>
@@ -74,8 +74,8 @@ export function Footer() {
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} BlueCore Agency. {t('common.allRightsReserved')}</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">Maxfiylik siyosati</a>
-            <a href="#" className="hover:text-white transition-colors">Ommaviy ofera</a>
+            <a href="#" className="hover:text-white transition-colors">{t('footer.privacyPolicy')}</a>
+            <a href="#" className="hover:text-white transition-colors">{t('footer.publicOffer')}</a>
           </div>
         </div>
       </div>

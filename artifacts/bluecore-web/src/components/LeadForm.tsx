@@ -132,12 +132,12 @@ export function LeadForm({ source = "website" }: { source?: string }) {
               className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none"
             >
               <option value="">{t('form.selectService')}</option>
-              <option value="smm">SMM Boshqaruv</option>
-              <option value="target">Targetli Reklama</option>
-              <option value="content">Kontent Yaratish</option>
-              <option value="design">Grafik Dizayn</option>
-              <option value="video">Video Montaj</option>
-              <option value="other">{t('form.budgetOptions.b5') === 'To be discussed' ? 'Other' : i18n.language === 'ru' ? 'Другое' : 'Boshqa'}</option>
+              <option value="smm">{t('form.serviceOptions.smm')}</option>
+              <option value="target">{t('form.serviceOptions.target')}</option>
+              <option value="content">{t('form.serviceOptions.content')}</option>
+              <option value="design">{t('form.serviceOptions.design')}</option>
+              <option value="video">{t('form.serviceOptions.video')}</option>
+              <option value="other">{t('form.serviceOptions.other')}</option>
             </select>
           </div>
 
@@ -163,11 +163,7 @@ export function LeadForm({ source = "website" }: { source?: string }) {
             {...register("message")}
             rows={4}
             className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"
-            placeholder={
-              i18n.language === 'ru' ? 'Расскажите о вашем проекте...'
-              : i18n.language === 'en' ? 'Tell us about your project...'
-              : 'Loyihangiz haqida qisqacha...'
-            }
+            placeholder={t('form.messagePlaceholder')}
           />
         </div>
 

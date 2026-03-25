@@ -13,13 +13,11 @@ export function FloatingElements() {
   const [hasShownExitIntent, setHasShownExitIntent] = useState(false);
   
   useEffect(() => {
-    // Check cookie consent
     const consent = localStorage.getItem("cookieConsent");
     if (!consent) {
       setTimeout(() => setShowCookie(true), 2000);
     }
 
-    // Exit intent logic
     const handleMouseLeave = (e: MouseEvent) => {
       if (e.clientY <= 0 && !hasShownExitIntent) {
         setShowExitIntent(true);
@@ -85,11 +83,11 @@ export function FloatingElements() {
             className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-auto md:w-96 bg-card border border-border p-4 rounded-2xl shadow-2xl z-50"
           >
             <p className="text-sm text-card-foreground mb-4">
-              Saytimizda foydalanuvchi tajribasini yaxshilash uchun cookie fayllaridan foydalanamiz.
+              {t('cookie.message')}
             </p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowCookie(false)} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">Yopish</button>
-              <button onClick={acceptCookies} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90">Qabul qilish</button>
+              <button onClick={() => setShowCookie(false)} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">{t('cookie.close')}</button>
+              <button onClick={acceptCookies} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90">{t('cookie.accept')}</button>
             </div>
           </motion.div>
         )}
@@ -115,22 +113,22 @@ export function FloatingElements() {
                 <div className="w-16 h-16 bg-accent/20 text-accent rounded-full flex items-center justify-center mx-auto mb-6">
                   <MessageCircle className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">Ketyapsizmi? Kutib turing!</h3>
+                <h3 className="text-2xl font-bold mb-2">{t('exitIntent.title')}</h3>
                 <p className="text-muted-foreground mb-6">
-                  Bizda sizning biznesingiz uchun maxsus taklif bor. Bepul konsultatsiya oling va raqobatchilaringizdan o'zib keting.
+                  {t('exitIntent.message')}
                 </p>
                 <Link 
                   href="/contact"
                   onClick={() => setShowExitIntent(false)}
                   className="block w-full py-3 bg-gradient-to-r from-primary to-accent text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 >
-                  Bepul Konsultatsiya
+                  {t('exitIntent.cta')}
                 </Link>
                 <button 
                   onClick={() => setShowExitIntent(false)}
                   className="mt-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
-                  Yo'q, rahmat
+                  {t('exitIntent.decline')}
                 </button>
               </div>
             </motion.div>
