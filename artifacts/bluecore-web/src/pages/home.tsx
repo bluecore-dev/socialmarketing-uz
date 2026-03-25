@@ -301,7 +301,7 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
-                    <Link href={`/cases/${cs.slug}`} className="mt-8 py-3 bg-white text-primary text-center font-bold rounded-xl hover:bg-accent hover:text-white transition-colors">
+                    <Link href="/cases" className="mt-8 py-3 bg-white text-primary text-center font-bold rounded-xl hover:bg-accent hover:text-white transition-colors">
                       {t('home.caseReadMore')}
                     </Link>
                   </div>
