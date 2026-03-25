@@ -2,10 +2,25 @@ import { AdminLayout } from "./layout";
 import { useGetUsers } from "@workspace/api-client-react";
 import { Users, UserCheck, UserX, Shield, Clock } from "lucide-react";
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  isBlocked?: boolean;
+  createdAt: string;
+}
+
+interface UsersResponse {
+  users: User[];
+  total?: number;
+}
+
 export default function AdminUsers() {
   const usersQuery = useGetUsers({ limit: "50" });
-  const data = usersQuery.data as any;
-  const users = data?.users || [];
+  const data = usersQuery.data as UsersResponse | undefined;
+  const users: User[] = data?.users || [];
 
   const roleColor: Record<string, string> = {
     admin: "bg-red-500/20 text-red-400",
@@ -39,7 +54,7 @@ export default function AdminUsers() {
                 ))
               ) : users.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-16 text-center text-gray-600"><Users className="w-10 h-10 mx-auto mb-3" /><p className="font-medium">Foydalanuvchilar yo'q</p></td></tr>
-              ) : users.map((u: any) => (
+              ) : users.map((u: User) => (
                 <tr key={u.id} className="hover:bg-gray-800/40 transition-colors">
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">

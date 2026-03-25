@@ -8,11 +8,12 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Ism juda qisqa"),
-  phone: z.string().min(7, "Telefon noto'g'ri formatda"),
-  email: z.string().email("Noto'g'ri email format").optional().or(z.literal("")),
+  name: z.string().min(2),
+  phone: z.string().min(7),
+  email: z.string().email().optional().or(z.literal("")),
   company: z.string().optional(),
   service: z.string().optional(),
+  budget: z.string().optional(),
   message: z.string().optional(),
 });
 
@@ -28,9 +29,15 @@ export function LeadForm({ source = "website" }: { source?: string }) {
   });
 
   const onSubmit = (data: FormData) => {
+    const budgetText = data.budget ? `[${t('form.budget')}: ${t(`form.budgetOptions.${data.budget}`)}] ` : '';
     createLead.mutate({
       data: {
-        ...data,
+        name: data.name,
+        phone: data.phone,
+        email: data.email || undefined,
+        company: data.company || undefined,
+        service: data.service || undefined,
+        message: budgetText + (data.message || ''),
         source,
         lang: i18n.language.substring(0, 2),
       }
@@ -56,13 +63,13 @@ export function LeadForm({ source = "website" }: { source?: string }) {
             <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-2">{t('common.success')}</h3>
-            <p className="text-muted-foreground">Tez orada menejerlarimiz siz bilan bog'lanishadi.</p>
-            <button 
+            <h3 className="text-2xl font-bold text-foreground mb-2">{t('form.successTitle')}</h3>
+            <p className="text-muted-foreground">{t('form.successMessage')}</p>
+            <button
               onClick={() => setIsSuccess(false)}
               className="mt-8 px-6 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 font-medium"
             >
-              Yangi so'rov
+              {t('form.newRequest')}
             </button>
           </motion.div>
         )}
@@ -77,59 +84,91 @@ export function LeadForm({ source = "website" }: { source?: string }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">{t('form.name')} *</label>
-            <input 
+            <input
               {...register("name")}
               className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
               placeholder="Ali Valiyev"
             />
-            {errors.name && <span className="text-destructive text-xs">{errors.name.message}</span>}
+            {errors.name && <span className="text-destructive text-xs">{t('common.error')}</span>}
           </div>
-          
+
           <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">{t('form.phone')} *</label>
-            <input 
+            <input
               {...register("phone")}
               className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
               placeholder="+998 90 123 45 67"
             />
-            {errors.phone && <span className="text-destructive text-xs">{errors.phone.message}</span>}
+            {errors.phone && <span className="text-destructive text-xs">{t('common.error')}</span>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-sm font-medium text-foreground">{t('form.company')}</label>
-            <input 
-              {...register("company")}
+            <label className="text-sm font-medium text-foreground">{t('form.email')}</label>
+            <input
+              {...register("email")}
+              type="email"
               className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-              placeholder="Kompaniya nomi"
+              placeholder="email@example.com"
             />
           </div>
-          
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">{t('form.company')}</label>
+            <input
+              {...register("company")}
+              className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              placeholder="BlueCore LLC"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">{t('form.service')}</label>
-            <select 
+            <select
               {...register("service")}
               className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none"
             >
-              <option value="">Tanlang...</option>
+              <option value="">{t('form.selectService')}</option>
               <option value="smm">SMM Boshqaruv</option>
-              <option value="target">Targeting</option>
+              <option value="target">Targetli Reklama</option>
               <option value="content">Kontent Yaratish</option>
-              <option value="design">Dizayn</option>
-              <option value="other">Boshqa</option>
+              <option value="design">Grafik Dizayn</option>
+              <option value="video">Video Montaj</option>
+              <option value="other">{t('form.budgetOptions.b5') === 'To be discussed' ? 'Other' : i18n.language === 'ru' ? 'Другое' : 'Boshqa'}</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">{t('form.budget')}</label>
+            <select
+              {...register("budget")}
+              className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none"
+            >
+              <option value="">{t('form.selectBudget')}</option>
+              <option value="b1">{t('form.budgetOptions.b1')}</option>
+              <option value="b2">{t('form.budgetOptions.b2')}</option>
+              <option value="b3">{t('form.budgetOptions.b3')}</option>
+              <option value="b4">{t('form.budgetOptions.b4')}</option>
+              <option value="b5">{t('form.budgetOptions.b5')}</option>
             </select>
           </div>
         </div>
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-foreground">{t('form.message')}</label>
-          <textarea 
+          <textarea
             {...register("message")}
             rows={4}
             className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"
-            placeholder="Loyihangiz haqida qisqacha..."
-          ></textarea>
+            placeholder={
+              i18n.language === 'ru' ? 'Расскажите о вашем проекте...'
+              : i18n.language === 'en' ? 'Tell us about your project...'
+              : 'Loyihangiz haqida qisqacha...'
+            }
+          />
         </div>
 
         <button

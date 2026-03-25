@@ -4,9 +4,24 @@ import { useGetAllBanners, useCreateBanner, useUpdateBanner, useDeleteBanner } f
 import { Image, Plus, Edit2, Trash2, X, Save, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
+interface BannerData {
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+  linkUrl: string;
+  linkText: string;
+  active: boolean;
+  order: number;
+  bgColor: string;
+}
+
+interface BannerRecord extends BannerData {
+  id: number;
+}
+
 interface BannerFormProps {
-  initial?: any;
-  onSave: (data: any) => void;
+  initial?: BannerRecord;
+  onSave: (data: BannerData) => void;
   onClose: () => void;
   isSaving: boolean;
 }
@@ -42,7 +57,7 @@ function BannerForm({ initial, onSave, onClose, isSaving }: BannerFormProps) {
             <div key={key}>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">{label}</label>
               <input
-                value={(form as any)[key]}
+                value={(form as unknown as Record<string, string>)[key]}
                 onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
                 className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary"
               />
@@ -126,8 +141,8 @@ export default function AdminBanners() {
         )}
       </div>
 
-      {showCreate && <BannerForm onSave={data => createBanner.mutate({ data })} onClose={() => setShowCreate(false)} isSaving={createBanner.isPending} />}
-      {editBanner && <BannerForm initial={editBanner} onSave={data => updateBanner.mutate({ id: editBanner.id, data })} onClose={() => setEditBanner(null)} isSaving={updateBanner.isPending} />}
+      {showCreate && <BannerForm onSave={data => createBanner.mutate({ data: data as unknown as Parameters<typeof createBanner.mutate>[0]['data'] })} onClose={() => setShowCreate(false)} isSaving={createBanner.isPending} />}
+      {editBanner && <BannerForm initial={editBanner} onSave={data => updateBanner.mutate({ id: String(editBanner.id), data: data as unknown as Parameters<typeof updateBanner.mutate>[0]['data'] })} onClose={() => setEditBanner(null)} isSaving={updateBanner.isPending} />}
     </AdminLayout>
   );
 }

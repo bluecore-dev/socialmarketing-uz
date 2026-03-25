@@ -16,7 +16,7 @@ export default function BlogPost() {
   const { t, i18n } = useTranslation();
   
   const postQuery = useGetBlogPost(params?.slug || "", {
-    query: { enabled: !!params?.slug }
+    query: { enabled: !!params?.slug, queryKey: ["/api/blog", params?.slug] }
   });
 
   if (postQuery.isLoading) {
@@ -61,7 +61,7 @@ export default function BlogPost() {
               <Calendar className="w-4 h-4" />
               {(post as any).publishedAt ? format(new Date((post as any).publishedAt), "d MMMM yyyy") : ''}
             </span>
-            {post.author && <span>Muallif: <strong className="text-foreground">{post.author}</strong></span>}
+            {(post as unknown as Record<string, string>).author && <span>Muallif: <strong className="text-foreground">{(post as unknown as Record<string, string>).author}</strong></span>}
           </div>
         </div>
 

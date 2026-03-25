@@ -5,15 +5,43 @@ import { useGetBlogPosts, useDeleteBlogPost, useCreateBlogPost, useUpdateBlogPos
 import { FileText, Plus, Edit2, Trash2, Eye, X, Save, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-function getContent(content: any, lang = "uz") {
+interface LocalizedEntry {
+  title: string;
+  excerpt: string;
+  body: string;
+  [key: string]: string;
+}
+
+interface BlogContentMap {
+  [lang: string]: LocalizedEntry;
+}
+
+interface BlogPost {
+  id: number;
+  slug: string;
+  status: string;
+  category?: string;
+  image?: string;
+  views?: number;
+  content?: BlogContentMap;
+  publishedAt?: string;
+  createdAt: string;
+}
+
+interface BlogResponse {
+  posts: BlogPost[];
+  total: number;
+}
+
+function getContent(content: BlogContentMap | undefined, lang = "uz"): LocalizedEntry {
   if (!content) return { title: "", excerpt: "", body: "" };
-  const obj = content[lang] || content["uz"] || {};
+  const obj = content[lang] || content["uz"] || { title: "", excerpt: "", body: "" };
   return { title: obj.title || "", excerpt: obj.excerpt || "", body: obj.body || "" };
 }
 
 interface BlogFormProps {
-  initial?: any;
-  onSave: (data: any) => void;
+  initial?: BlogPost;
+  onSave: (data: Record<string, unknown>) => void;
   onClose: () => void;
   isSaving: boolean;
 }
@@ -171,12 +199,13 @@ function BlogForm({ initial, onSave, onClose, isSaving }: BlogFormProps) {
 }
 
 export default function AdminBlog() {
-  const [editPost, setEditPost] = useState<any | null>(null);
+  const [editPost, setEditPost] = useState<BlogPost | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const qc = useQueryClient();
 
   const blogQuery = useGetBlogPosts({ limit: "50" });
-  const posts = (blogQuery.data as any)?.posts || [];
+  const blogData = blogQuery.data as BlogResponse | undefined;
+  const posts: BlogPost[] = blogData?.posts || [];
 
   const createPost = useCreateBlogPost({
     mutation: {
@@ -232,7 +261,7 @@ export default function AdminBlog() {
           </div>
         ) : (
           <div className="divide-y divide-gray-800/50">
-            {posts.map((post: any) => {
+            {posts.map((post: BlogPost) => {
               const lc = getContent(post.content, "uz");
               return (
                 <div key={post.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-800/30 transition-colors">
@@ -259,7 +288,7 @@ export default function AdminBlog() {
                     <button
                       onClick={() => {
                         if (confirm(`"${lc.title}" maqolasini o'chirmoqchimisiz?`)) {
-                          deletePost.mutate({ id: post.id });
+                          deletePost.mutate({ id: String(post.id) });
                         }
                       }}
                       className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -276,7 +305,7 @@ export default function AdminBlog() {
 
       {showCreate && (
         <BlogForm
-          onSave={data => createPost.mutate({ data })}
+          onSave={data => createPost.mutate({ data: data as unknown as Parameters<typeof createPost.mutate>[0]['data'] })}
           onClose={() => setShowCreate(false)}
           isSaving={createPost.isPending}
         />
@@ -285,7 +314,7 @@ export default function AdminBlog() {
       {editPost && (
         <BlogForm
           initial={editPost}
-          onSave={data => updatePost.mutate({ id: editPost.id, data })}
+          onSave={data => updatePost.mutate({ id: String(editPost.id), data: data as unknown as Parameters<typeof updatePost.mutate>[0]['data'] })}
           onClose={() => setEditPost(null)}
           isSaving={updatePost.isPending}
         />

@@ -5,6 +5,27 @@ import { useGetLeads, useUpdateLead } from "@workspace/api-client-react";
 import { MessageSquare, Search, Filter, Clock, ChevronDown, Eye } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
+interface Lead {
+  id: number;
+  name: string;
+  email?: string;
+  phone: string;
+  company?: string;
+  service?: string;
+  message?: string;
+  source?: string;
+  status: string;
+  lang?: string;
+  createdAt: string;
+}
+
+interface LeadsResponse {
+  leads: Lead[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 const statusMap: Record<string, { label: string; color: string }> = {
   new: { label: "Yangi", color: "bg-blue-500/20 text-blue-400" },
   reviewing: { label: "Ko'rilmoqda", color: "bg-yellow-500/20 text-yellow-400" },
@@ -35,12 +56,12 @@ export default function AdminLeads() {
     },
   });
 
-  const data = leadsQuery.data as any;
-  const leads = data?.leads || [];
+  const data = leadsQuery.data as LeadsResponse | undefined;
+  const leads: Lead[] = data?.leads || [];
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / 20);
 
-  const filtered = leads.filter((l: any) =>
+  const filtered = leads.filter((l: Lead) =>
     !search || l.name?.toLowerCase().includes(search.toLowerCase()) || l.email?.toLowerCase().includes(search.toLowerCase()) || l.phone?.includes(search)
   );
 

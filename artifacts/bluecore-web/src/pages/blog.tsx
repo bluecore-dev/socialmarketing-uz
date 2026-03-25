@@ -60,7 +60,7 @@ export default function Blog() {
                       
                       <div className="flex items-center justify-between border-t border-border pt-4 mt-auto">
                          <span className="text-sm font-semibold text-foreground flex items-center gap-2">
-                           <User className="w-4 h-4 text-muted-foreground"/> {post.author || "BlueCore"}
+                           <User className="w-4 h-4 text-muted-foreground"/> {(post as unknown as Record<string, string>).author || "BlueCore"}
                          </span>
                          <span className="text-primary group-hover:translate-x-1 transition-transform"><ArrowRight className="w-5 h-5"/></span>
                       </div>

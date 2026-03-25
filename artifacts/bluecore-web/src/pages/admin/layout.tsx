@@ -121,7 +121,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           {!collapsed && <span>Saytga qaytish</span>}
         </Link>
         <button
-          onClick={() => logoutMutation.mutate({})}
+          onClick={() => logoutMutation.mutate(undefined as unknown as void)}
           disabled={logoutMutation.isPending}
           className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all", collapsed && "justify-center px-2")}
         >

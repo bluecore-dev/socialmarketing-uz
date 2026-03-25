@@ -94,7 +94,7 @@ export default function Cabinet() {
             </div>
           </div>
           <button
-            onClick={() => logoutMutation.mutate({})}
+            onClick={() => logoutMutation.mutate(undefined as unknown as void)}
             disabled={logoutMutation.isPending}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
           >

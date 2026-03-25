@@ -1,9 +1,42 @@
+import { ElementType } from "react";
 import { AdminLayout } from "./layout";
 import { useGetAdminStats, useGetLeads } from "@workspace/api-client-react";
 import { TrendingUp, TrendingDown, Users, MessageSquare, FileText, BarChart2, Eye, Clock } from "lucide-react";
 import { Link } from "wouter";
 
-function StatCard({ label, value, change, icon: Icon, color }: any) {
+interface AdminStats {
+  todayLeads: number;
+  yesterdayLeads: number;
+  monthLeads: number;
+  totalUsers: number;
+  activeUsers: number;
+  totalPosts: number;
+}
+
+interface Lead {
+  id: number;
+  name: string;
+  email?: string;
+  phone: string;
+  service?: string;
+  status: string;
+  createdAt: string;
+}
+
+interface LeadsResponse {
+  leads: Lead[];
+  total: number;
+}
+
+interface StatCardProps {
+  label: string;
+  value: number | string;
+  change: number;
+  icon: ElementType;
+  color: string;
+}
+
+function StatCard({ label, value, change, icon: Icon, color }: StatCardProps) {
   const isPositive = change >= 0;
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
@@ -34,8 +67,9 @@ export default function AdminDashboard() {
   const statsQuery = useGetAdminStats();
   const leadsQuery = useGetLeads({ limit: "5" });
 
-  const stats = statsQuery.data as any;
-  const leads = (leadsQuery.data as any)?.leads || [];
+  const stats = statsQuery.data as AdminStats | undefined;
+  const leadsData = leadsQuery.data as LeadsResponse | undefined;
+  const leads: Lead[] = leadsData?.leads || [];
 
   const todayChange = stats
     ? stats.yesterdayLeads > 0
