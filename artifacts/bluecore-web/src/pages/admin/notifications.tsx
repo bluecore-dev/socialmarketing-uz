@@ -40,7 +40,7 @@ export default function AdminNotifications() {
   });
   const [formError, setFormError] = useState("");
 
-  const notifQuery = useGetAllNotificationsAdmin({ page: "1", limit: "100" });
+  const notifQuery = useGetAllNotificationsAdmin({ page: 1, limit: 100 });
   const notifications: Notification[] = (notifQuery.data as Notification[] | undefined) ?? [];
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getGetAllNotificationsAdminQueryKey() });

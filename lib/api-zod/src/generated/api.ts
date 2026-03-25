@@ -823,9 +823,21 @@ export const SendNotificationBody = zod.object({
 /**
  * @summary Get all notifications (admin history view)
  */
+export const getAllNotificationsAdminQueryPageDefault = 1;
+
+export const getAllNotificationsAdminQueryLimitDefault = 50;
+export const getAllNotificationsAdminQueryLimitMax = 100;
+
 export const GetAllNotificationsAdminQueryParams = zod.object({
-  page: zod.coerce.string().optional(),
-  limit: zod.coerce.string().optional(),
+  page: zod.coerce
+    .number()
+    .min(1)
+    .default(getAllNotificationsAdminQueryPageDefault),
+  limit: zod.coerce
+    .number()
+    .min(1)
+    .max(getAllNotificationsAdminQueryLimitMax)
+    .default(getAllNotificationsAdminQueryLimitDefault),
 });
 
 export const GetAllNotificationsAdminResponseItem = zod.object({
