@@ -1,6 +1,23 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+function BlueCoreLogoMark() {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-14 w-14">
+      <defs>
+        <linearGradient id="pggrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#1A4F8A" />
+          <stop offset="0.5" stopColor="#0077CC" />
+          <stop offset="1" stopColor="#00C4FF" />
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="10" fill="url(#pggrad)" />
+      <path d="M11 10h10.5c3.5 0 6 2 6 5.2 0 1.8-.9 3.2-2.2 4 1.8.7 3 2.3 3 4.4C28.3 27.2 25.6 30 22 30H11V10z" fill="white" />
+      <path d="M15.5 14v5h5.5c1.4 0 2.4-.9 2.4-2.5S22.4 14 21 14h-5.5zM15.5 22.5v5.5H22c1.6 0 2.7-1 2.7-2.7 0-1.7-1.1-2.8-2.7-2.8h-6.5z" fill="url(#pggrad)" />
+    </svg>
+  );
+}
+
 export function PageLoader() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -50,11 +67,10 @@ export function PageLoader() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
             className="flex flex-col items-center gap-4"
           >
-            <img
-              src={`${import.meta.env.BASE_URL}images/bluecore-logo.png`}
-              alt="BlueCore"
-              className="h-16 w-auto object-contain"
-            />
+            <BlueCoreLogoMark />
+            <p className="font-display font-bold text-xl text-foreground tracking-tight mt-1">
+              Blue<span className="text-primary">Core</span><span className="text-accent">.</span>
+            </p>
           </motion.div>
 
           <motion.div
