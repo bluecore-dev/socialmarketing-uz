@@ -821,6 +821,28 @@ export const SendNotificationBody = zod.object({
 });
 
 /**
+ * @summary Get all notifications (admin history view)
+ */
+export const GetAllNotificationsAdminQueryParams = zod.object({
+  page: zod.coerce.string().optional(),
+  limit: zod.coerce.string().optional(),
+});
+
+export const GetAllNotificationsAdminResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number().optional(),
+  type: zod.string(),
+  title: zod.string(),
+  body: zod.string(),
+  read: zod.boolean(),
+  link: zod.string().optional(),
+  createdAt: zod.string().optional(),
+});
+export const GetAllNotificationsAdminResponse = zod.array(
+  GetAllNotificationsAdminResponseItem,
+);
+
+/**
  * @summary Mark a notification as read
  */
 export const MarkNotificationReadParams = zod.object({

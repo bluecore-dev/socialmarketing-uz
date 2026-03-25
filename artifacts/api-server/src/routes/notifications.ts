@@ -6,6 +6,21 @@ import { requireAuth, requireRole, AuthRequest } from "../middleware/auth.js";
 
 const router = Router();
 
+router.get("/admin/all", requireAuth, requireRole("admin"), async (req: AuthRequest, res) => {
+  try {
+    const page = Math.max(1, parseInt(String(req.query["page"] || "1")));
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query["limit"] || "50"))));
+    const offset = (page - 1) * limit;
+    const notifications = await db.select().from(notificationsTable)
+      .orderBy(desc(notificationsTable.createdAt))
+      .limit(limit).offset(offset);
+    res.json(notifications);
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server xatosi" });
+  }
+});
+
 router.get("/", requireAuth, async (req: AuthRequest, res) => {
   try {
     const notifications = await db.select().from(notificationsTable)

@@ -365,6 +365,11 @@ export type GetBannersParams = {
   lang?: string;
 };
 
+export type GetAllNotificationsAdminParams = {
+  page?: string;
+  limit?: string;
+};
+
 export type DeleteNotification200 = {
   success?: boolean;
 };

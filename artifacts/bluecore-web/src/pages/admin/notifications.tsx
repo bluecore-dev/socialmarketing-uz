@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { AdminLayout } from "./layout";
 import {
-  useGetNotifications,
+  useGetAllNotificationsAdmin,
   useSendNotification,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
   useDeleteNotification,
+  getGetAllNotificationsAdminQueryKey,
 } from "@workspace/api-client-react";
 import type { Notification, NotificationInput } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetNotificationsQueryKey } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth-context";
 import { Bell, Send, Trash2, Check, CheckCheck, Loader2, X, User, Globe, ShieldOff } from "lucide-react";
 
@@ -42,10 +42,10 @@ export default function AdminNotifications() {
   });
   const [formError, setFormError] = useState("");
 
-  const notifQuery = useGetNotifications();
+  const notifQuery = useGetAllNotificationsAdmin({ page: "1", limit: "100" });
   const notifications: Notification[] = (notifQuery.data as Notification[] | undefined) ?? [];
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: getGetAllNotificationsAdminQueryKey() });
 
   const sendMutation = useSendNotification({
     mutation: {

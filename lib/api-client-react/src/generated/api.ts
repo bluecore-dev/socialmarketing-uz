@@ -34,6 +34,7 @@ import type {
   ExportLeadsCsvParams,
   FlowDataPoint,
   ForgotPasswordBody,
+  GetAllNotificationsAdminParams,
   GetBannersParams,
   GetBlogPostsParams,
   GetCaseStudiesParams,
@@ -3689,6 +3690,106 @@ export const useSendNotification = <
 > => {
   return useMutation(getSendNotificationMutationOptions(options));
 };
+
+/**
+ * @summary Get all notifications (admin history view)
+ */
+export const getGetAllNotificationsAdminUrl = (
+  params?: GetAllNotificationsAdminParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/notifications/admin/all?${stringifiedParams}`
+    : `/api/notifications/admin/all`;
+};
+
+export const getAllNotificationsAdmin = async (
+  params?: GetAllNotificationsAdminParams,
+  options?: RequestInit,
+): Promise<Notification[]> => {
+  return customFetch<Notification[]>(getGetAllNotificationsAdminUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAllNotificationsAdminQueryKey = (
+  params?: GetAllNotificationsAdminParams,
+) => {
+  return [`/api/notifications/admin/all`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetAllNotificationsAdminQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAllNotificationsAdmin>>,
+  TError = ErrorType<void>,
+>(
+  params?: GetAllNotificationsAdminParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAllNotificationsAdmin>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAllNotificationsAdminQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAllNotificationsAdmin>>
+  > = ({ signal }) =>
+    getAllNotificationsAdmin(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAllNotificationsAdmin>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAllNotificationsAdminQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAllNotificationsAdmin>>
+>;
+export type GetAllNotificationsAdminQueryError = ErrorType<void>;
+
+/**
+ * @summary Get all notifications (admin history view)
+ */
+
+export function useGetAllNotificationsAdmin<
+  TData = Awaited<ReturnType<typeof getAllNotificationsAdmin>>,
+  TError = ErrorType<void>,
+>(
+  params?: GetAllNotificationsAdminParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAllNotificationsAdmin>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAllNotificationsAdminQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Mark a notification as read

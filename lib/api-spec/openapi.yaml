@@ -929,6 +929,34 @@ paths:
                 items:
                   $ref: "#/components/schemas/Notification"
 
+  /notifications/admin/all:
+    get:
+      operationId: getAllNotificationsAdmin
+      tags: [notifications]
+      summary: Get all notifications (admin history view)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+        "403":
+          description: Forbidden
+
   /notifications/{id}/read:
     patch:
       operationId: markNotificationRead
