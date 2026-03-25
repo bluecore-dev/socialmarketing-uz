@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, MessageCircle, Home, Briefcase, User, LayoutGrid, X, ArrowRight } from "lucide-react";
+import { MessageCircle, Home, Briefcase, User, LayoutGrid, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function FloatingElements() {
@@ -52,17 +52,6 @@ export function FloatingElements() {
 
   return (
     <>
-      {/* WhatsApp Floating Button */}
-      <a 
-        href="https://wa.me/998911419988"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-24 md:bottom-8 right-6 z-40 w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 hover:scale-110 transition-all duration-300"
-      >
-        <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25"></div>
-        <Phone className="w-6 h-6 z-10 relative" />
-      </a>
-
       {/* Mobile Sticky CTA bar — appears after scrolling past hero */}
       <AnimatePresence>
         {showMobileCTA && (
@@ -79,14 +68,6 @@ export function FloatingElements() {
             >
               {t('hero.cta1')} <ArrowRight className="w-4 h-4" />
             </Link>
-            <a
-              href="https://wa.me/998911419988"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-12 h-12 bg-green-500 text-white rounded-2xl shadow-xl flex items-center justify-center shrink-0"
-            >
-              <Phone className="w-5 h-5" />
-            </a>
           </motion.div>
         )}
       </AnimatePresence>
