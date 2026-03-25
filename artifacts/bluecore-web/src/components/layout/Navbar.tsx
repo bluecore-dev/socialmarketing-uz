@@ -1,34 +1,67 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronRight, User, ChevronDown, Instagram, Youtube, Facebook, BarChart2, Lightbulb, Film } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight, User, ChevronDown, Instagram, Youtube, Facebook, BarChart2, Lightbulb, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { useMagneticHover } from "@/hooks/useMagneticHover";
 
 const SERVICE_ICONS = [Instagram, Youtube, Facebook, BarChart2, Lightbulb, Film];
+
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <div className="w-6 h-6 flex flex-col justify-center items-center gap-[5px] cursor-pointer">
+      <motion.span
+        animate={open ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="w-6 h-[2px] bg-foreground rounded-full block origin-center"
+      />
+      <motion.span
+        animate={open ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 }}
+        transition={{ duration: 0.2 }}
+        className="w-6 h-[2px] bg-foreground rounded-full block"
+      />
+      <motion.span
+        animate={open ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="w-6 h-[2px] bg-foreground rounded-full block origin-center"
+      />
+    </div>
+  );
+}
+
+function MagneticCTAButton({ children, href }: { children: React.ReactNode; href: string }) {
+  const ref = useMagneticHover<HTMLDivElement>({ strength: 12 });
+  return (
+    <div ref={ref} className="hidden lg:block">
+      <Link
+        href={href}
+        className="group flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg glow-border shimmer-btn"
+      >
+        {children}
+      </Link>
+    </div>
+  );
+}
 
 export function Navbar() {
   const { t, i18n } = useTranslation();
   const [location] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollBlur, setScrollBlur] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const servicesRef = useRef<HTMLLIElement>(null);
 
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
-
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const y = window.scrollY;
+      setIsScrolled(y > 20);
+      setScrollBlur(Math.min(y / 8, 24));
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -41,6 +74,15 @@ export function Navbar() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileMenuOpen]);
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -65,22 +107,27 @@ export function Navbar() {
 
   return (
     <>
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-secondary z-[60] origin-left"
-        style={{ scaleX }}
-      />
-      
       <header
+        style={{
+          backdropFilter: isScrolled ? `blur(${Math.min(scrollBlur, 20)}px) saturate(180%)` : undefined,
+          WebkitBackdropFilter: isScrolled ? `blur(${Math.min(scrollBlur, 20)}px) saturate(180%)` : undefined,
+        }}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
-          isScrolled ? "bg-background/80 backdrop-blur-md border-border shadow-sm py-3" : "bg-transparent py-5"
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b",
+          isScrolled
+            ? "border-border/50 shadow-sm py-3 bg-background/75"
+            : "border-transparent py-5 bg-transparent"
         )}
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 z-50 relative">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl">
+          <Link href="/" className="flex items-center gap-2 z-50 relative group">
+            <motion.div
+              whileHover={{ scale: 1.05, rotate: -3 }}
+              transition={{ duration: 0.2 }}
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg"
+            >
               B
-            </div>
+            </motion.div>
             <span className="text-xl font-bold tracking-tight text-foreground">
               BlueCore<span className="text-accent">.</span>
             </span>
@@ -101,7 +148,7 @@ export function Navbar() {
                       )}
                     >
                       {link.label}
-                      <ChevronDown className={cn("w-4 h-4 transition-transform", servicesOpen && "rotate-180")} />
+                      <ChevronDown className={cn("w-4 h-4 transition-transform duration-300", servicesOpen && "rotate-180")} />
                       {location.startsWith("/services") && (
                         <motion.div
                           layoutId="activeNav"
@@ -127,19 +174,18 @@ export function Navbar() {
                     </Link>
                   )}
 
-                  {/* Mega-menu dropdown */}
                   {link.hasMega && (
                     <AnimatePresence>
                       {servicesOpen && (
                         <motion.div
-                          initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                          initial={{ opacity: 0, y: 12, scale: 0.97 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                          transition={{ duration: 0.18 }}
+                          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                           onMouseLeave={() => setServicesOpen(false)}
-                          className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[480px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-[55] p-4"
+                          className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[480px] glass-panel rounded-2xl shadow-2xl overflow-hidden z-[55] p-4"
                         >
-                          <p className="text-xs font-bold uppercase text-muted-foreground tracking-widest px-2 mb-3">
+                          <p className="text-xs font-mono font-bold uppercase text-muted-foreground tracking-widest px-2 mb-3">
                             {t('nav.services')}
                           </p>
                           <div className="grid grid-cols-2 gap-2">
@@ -150,9 +196,9 @@ export function Navbar() {
                                   key={item.href}
                                   href={item.href}
                                   onClick={() => setServicesOpen(false)}
-                                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors group"
+                                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/80 transition-colors group"
                                 >
-                                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-primary/20 group-hover:scale-110 transition-all">
                                     <Icon className="w-5 h-5 text-primary" />
                                   </div>
                                   <span className="text-sm font-medium text-foreground leading-tight">{item.label}</span>
@@ -179,13 +225,13 @@ export function Navbar() {
             </ul>
 
             <div className="flex items-center gap-4 border-l border-border pl-6">
-              <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+              <div className="flex items-center gap-1 bg-muted/80 p-1 rounded-lg">
                 {['uz', 'ru', 'en'].map((lang) => (
                   <button
                     key={lang}
                     onClick={() => changeLanguage(lang)}
                     className={cn(
-                      "px-2 py-1 text-xs font-semibold uppercase rounded-md transition-all",
+                      "px-2 py-1 text-xs font-mono font-semibold uppercase rounded-md transition-all",
                       i18n.language.startsWith(lang)
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -204,114 +250,131 @@ export function Navbar() {
                   {t('nav.cabinet', 'Kabinet')}
                 </Link>
               ) : (
-                <Link href="/login" className="flex items-center gap-2 px-4 py-2 bg-muted text-foreground font-semibold rounded-xl hover:bg-muted/80 transition-all text-sm">
+                <Link href="/login" className="flex items-center gap-2 px-4 py-2 bg-muted/80 text-foreground font-semibold rounded-xl hover:bg-muted transition-all text-sm">
                   <User className="w-4 h-4" />
                   {t('nav.login', 'Kirish')}
                 </Link>
               )}
 
-              <Link href="/contact" className="group hidden lg:flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+              <MagneticCTAButton href="/contact">
                 <span>{t('hero.cta1')}</span>
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              </MagneticCTAButton>
             </div>
           </nav>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Hamburger */}
           <button
-            className="md:hidden z-50 relative p-2 text-foreground"
+            className="md:hidden z-50 relative p-2 text-foreground touch-target"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <HamburgerIcon open={mobileMenuOpen} />
           </button>
         </div>
 
-        {/* Mobile Menu Overlay */}
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: mobileMenuOpen ? 1 : 0,
-            pointerEvents: mobileMenuOpen ? "auto" : "none",
-          }}
-          className="fixed inset-0 bg-background/95 backdrop-blur-xl z-40 md:hidden pt-24 px-6 pb-6 flex flex-col"
-        >
-          <ul className="flex flex-col gap-6 text-xl font-bold">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    "block w-full transition-colors",
-                    location === link.href || (link.hasMega && location.startsWith("/services"))
-                      ? "text-primary"
-                      : "text-foreground"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href="/contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-accent"
-              >
-                {t('nav.contact')}
-              </Link>
-            </li>
-          </ul>
-
-          <div className="mt-auto pb-8">
-            <p className="text-sm text-muted-foreground mb-4 font-medium uppercase tracking-wider">Til / Язык / Language</p>
-            <div className="flex gap-3">
-              {['uz', 'ru', 'en'].map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => {
-                    changeLanguage(lang);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={cn(
-                    "px-4 py-3 rounded-xl font-bold uppercase flex-1 border transition-all",
-                    i18n.language.startsWith(lang)
-                      ? "bg-primary text-primary-foreground border-primary shadow-md"
-                      : "bg-muted text-muted-foreground border-border"
-                  )}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </header>
-
-      {/* Sticky CTA Bar — visible after scrolling past hero */}
-      <AnimatePresence>
-        {isScrolled && (
-          <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 hidden md:flex items-center gap-4 bg-background/90 backdrop-blur-lg border border-border shadow-2xl rounded-2xl px-6 py-3"
-          >
-            <span className="text-sm font-medium text-muted-foreground">
-              {t('hero.subtitle', '').split('.')[0] || 'Natijaga yo\'naltirilgan SMM'}
-            </span>
-            <div className="w-px h-5 bg-border" />
-            <Link
-              href="/contact"
-              className="flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 hover:-translate-y-0.5 transition-all text-sm shadow-md"
+        {/* Fullscreen Mobile Menu — clip-path circle reveal + swipe-to-close */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              key="mobile-menu"
+              initial={{ clipPath: "circle(0% at calc(100% - 2rem) 2rem)", opacity: 0 }}
+              animate={{ clipPath: "circle(150% at calc(100% - 2rem) 2rem)", opacity: 1 }}
+              exit={{ clipPath: "circle(0% at calc(100% - 2rem) 2rem)", opacity: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={{ left: 0, right: 0.3 }}
+              onDragEnd={(_e, info) => {
+                if (info.offset.x > 100 || info.velocity.x > 400) {
+                  setMobileMenuOpen(false);
+                }
+              }}
+              className="fixed inset-0 bg-background z-40 md:hidden flex flex-col pt-24 px-8 pb-10 overflow-y-auto"
             >
-              {t('hero.cta1')}
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <ul className="flex flex-col gap-2 mb-8">
+                {navLinks.map((link, i) => (
+                  <motion.li
+                    key={link.href}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: 0.15 + i * 0.07,
+                      duration: 0.4,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                  >
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        "block w-full text-3xl font-bold py-3 border-b border-border/50 transition-colors",
+                        location === link.href || (link.hasMega && location.startsWith("/services"))
+                          ? "text-primary"
+                          : "text-foreground hover:text-primary"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.li>
+                ))}
+                <motion.li
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 + navLinks.length * 0.07, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <Link
+                    href="/contact"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-3xl font-bold py-3 text-accent border-b border-border/50 hover:text-accent/80 transition-colors"
+                  >
+                    {t('nav.contact')}
+                  </Link>
+                </motion.li>
+              </ul>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55, duration: 0.4 }}
+                className="mt-auto space-y-6"
+              >
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full py-4 bg-primary text-primary-foreground text-center font-bold rounded-2xl text-lg shimmer-btn"
+                >
+                  {t('hero.cta1')}
+                </Link>
+
+                <div>
+                  <p className="text-sm text-muted-foreground mb-3 font-mono uppercase tracking-wider">Til / Язык / Language</p>
+                  <div className="flex gap-3">
+                    {['uz', 'ru', 'en'].map((lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => {
+                          changeLanguage(lang);
+                          setMobileMenuOpen(false);
+                        }}
+                        className={cn(
+                          "px-4 py-3 rounded-xl font-bold uppercase flex-1 border transition-all text-sm touch-target",
+                          i18n.language.startsWith(lang)
+                            ? "bg-primary text-primary-foreground border-primary shadow-md"
+                            : "bg-muted text-muted-foreground border-border"
+                        )}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
     </>
   );
 }

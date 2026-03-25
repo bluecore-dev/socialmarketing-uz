@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +9,9 @@ import { FloatingElements } from "@/components/layout/FloatingElements";
 import { AuthProvider } from "@/lib/auth-context";
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { AnimatePresence, motion } from "framer-motion";
+import { CustomCursor } from "@/components/ui/CustomCursor";
+import { PageLoader } from "@/components/ui/PageLoader";
+import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 import "@/lib/i18n";
 
 const Home = lazy(() => import("@/pages/home"));
@@ -43,12 +46,12 @@ const queryClient = new QueryClient({
 });
 
 const pageVariants = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
+  initial: { opacity: 0, y: 16, filter: "blur(4px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+  exit: { opacity: 0, y: -8, filter: "blur(2px)" },
 };
 
-const pageTransition = { duration: 0.25 };
+const pageTransition = { duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] };
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -64,12 +67,49 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PageLoader() {
+function PageLoader2() {
   return (
     <div className="min-h-[50vh] flex items-center justify-center">
-      <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary"
+      />
     </div>
   );
+}
+
+function LenisProvider() {
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReducedMotion) return;
+
+    let lenis: { raf: (time: number) => void; destroy: () => void } | null = null;
+    let rafId: number;
+
+    import("@studio-freight/lenis").then(({ default: Lenis }) => {
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+      });
+
+      function raf(time: number) {
+        lenis?.raf(time);
+        rafId = requestAnimationFrame(raf);
+      }
+      rafId = requestAnimationFrame(raf);
+    }).catch(() => {});
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis?.destroy();
+    };
+  }, []);
+
+  return null;
 }
 
 function PublicRoutes() {
@@ -78,7 +118,7 @@ function PublicRoutes() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <div className="flex-1">
-        <Suspense fallback={<PageLoader />}>
+        <Suspense fallback={<PageLoader2 />}>
           <AnimatePresence mode="wait">
             <Switch key={location}>
               <Route path="/">
@@ -127,7 +167,7 @@ function PublicRoutes() {
 
 function Router() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<PageLoader2 />}>
       <Switch>
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
@@ -152,6 +192,10 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <AuthProvider>
+            <LenisProvider />
+            <PageLoader />
+            <ScrollProgressBar />
+            <CustomCursor />
             <Router />
           </AuthProvider>
         </WouterRouter>

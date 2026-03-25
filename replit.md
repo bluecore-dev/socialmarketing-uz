@@ -5,8 +5,28 @@ Full-stack SMM agency website: React+Vite frontend (3 languages: uz/ru/en), Expr
 
 ## Brand
 - Primary: `#1A4F8A`, Secondary: `#0077CC`, Accent: `#00C4FF`
-- Font: Plus Jakarta Sans
+- Fonts: Cormorant Garamond (display/headings), DM Sans (body), JetBrains Mono (accents/labels)
 - WhatsApp: wa.me/998911419988
+
+## Premium Cinematic Design (Task 5)
+- **Page Loader**: Logo reveal → fade out (sessionStorage once-per-session)
+- **Scroll Progress Bar**: Gradient bar at top using Framer Motion `useScroll`
+- **Custom Cursor**: Dot + ring, ring expands on hover — desktop only (pointer: fine)
+- **Glass Morphism Header**: Blur intensifies on scroll, clip-path circle reveal mobile menu
+- **Noise/Grain Texture**: CSS `body::before` with SVG noise, 3.5% opacity, fixed, animated
+- **Hero**: Fullscreen video bg, cinematic overlay + vignette, blur→clear entrance animations
+- **Smooth Scroll**: Lenis (`@studio-freight/lenis`) loaded lazily, respects `prefers-reduced-motion`
+- **Scroll Animations**: `useScrollAnimation` hook with IntersectionObserver for fade+slide+blur
+- **Counter Animations**: `useCounterAnimation` hook with requestAnimationFrame, scroll-triggered
+- **Magnetic Hover**: `useMagneticHover` hook for CTA buttons — 15px radius, desktop only
+- **Video Fallback**: `useVideoFallback` hook respects `navigator.connection` (slow → poster)
+- **Parallax Sections**: `useScroll` + `useTransform` at 0.3-0.5x speed factor
+- **Portfolio Grid**: Masonry layout with category filter + AnimatePresence transitions
+- **Testimonials**: Swiper with FreeMode, grab cursor, autoplay, touch-friendly
+- **Mobile CTA Bar**: Sticky bottom bar appears after scrolling 60% past hero
+- **Fluid Typography**: CSS `clamp()` based fluid text classes (fluid-text-sm → fluid-text-hero)
+- **Touch Targets**: 48×48px minimum on all mobile interactive elements
+- **prefers-reduced-motion**: All animations and Lenis smooth scroll disabled/simplified
 
 ## Admin Access
 - Email: `admin@bluecore.uz`, Password: `admin1234`, Role: `admin`
