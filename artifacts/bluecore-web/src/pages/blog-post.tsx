@@ -53,7 +53,7 @@ export default function BlogPost() {
     );
   }
 
-  const lc = getLocalizedContent(post.content, i18n.language);
+  const lc = getLocalizedContent(post.content, i18n.language.split('-')[0]);
 
   return (
     <main className="min-h-screen pt-32 pb-20 bg-background">

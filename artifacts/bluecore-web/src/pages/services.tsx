@@ -26,40 +26,40 @@ export default function Services() {
     {
       name: "Start",
       price: "300$",
-      desc: i18n.language === 'ru' ? 'Для малого бизнеса и личных блогов' : i18n.language === 'en' ? 'For small businesses and personal blogs' : 'Kichik biznes va shaxsiy bloglar uchun',
-      features: i18n.language === 'ru'
+      desc: i18n.language.split('-')[0] === 'ru' ? 'Для малого бизнеса и личных блогов' : i18n.language.split('-')[0] === 'en' ? 'For small businesses and personal blogs' : 'Kichik biznes va shaxsiy bloglar uchun',
+      features: i18n.language.split('-')[0] === 'ru'
         ? ["15 постов/мес", "10 историй/мес", "Базовый дизайн", "Ежемесячный отчёт"]
-        : i18n.language === 'en'
+        : i18n.language.split('-')[0] === 'en'
         ? ["15 posts/mo", "10 stories/mo", "Basic design", "Monthly report"]
         : ["15 ta post/oy", "10 ta hikoya/oy", "Asosiy dizayn", "Oylik hisobot"],
     },
     {
       name: "Business",
       price: "600$",
-      desc: i18n.language === 'ru' ? 'Идеально для растущих компаний' : i18n.language === 'en' ? 'Ideal for growing companies' : 'Rivojlanayotgan kompaniyalar uchun ideal',
+      desc: i18n.language.split('-')[0] === 'ru' ? 'Идеально для растущих компаний' : i18n.language.split('-')[0] === 'en' ? 'Ideal for growing companies' : 'Rivojlanayotgan kompaniyalar uchun ideal',
       pop: true,
-      features: i18n.language === 'ru'
+      features: i18n.language.split('-')[0] === 'ru'
         ? ["20 постов/мес", "20 историй/мес", "Премиум дизайн", "Настройка таргетинга", "Reels/TikTok видео"]
-        : i18n.language === 'en'
+        : i18n.language.split('-')[0] === 'en'
         ? ["20 posts/mo", "20 stories/mo", "Premium design", "Targeting setup", "Reels/TikTok videos"]
         : ["20 ta post/oy", "20 ta hikoya/oy", "Premium dizayn", "Targeting sozlash", "Reels/TikTok videolar"],
     },
     {
       name: "Pro",
       price: "1000$+",
-      desc: i18n.language === 'ru' ? 'Полное решение для крупных брендов' : i18n.language === 'en' ? 'Full solution for big brands' : "Katta brendlar uchun to'liq yechim",
-      features: i18n.language === 'ru'
+      desc: i18n.language.split('-')[0] === 'ru' ? 'Полное решение для крупных брендов' : i18n.language.split('-')[0] === 'en' ? 'Full solution for big brands' : "Katta brendlar uchun to'liq yechim",
+      features: i18n.language.split('-')[0] === 'ru'
         ? ["Безлимитный контент", "Проф. продакшн", "Расширенная аналитика", "Персональный менеджер 24/7"]
-        : i18n.language === 'en'
+        : i18n.language.split('-')[0] === 'en'
         ? ["Unlimited content", "Professional production", "Advanced analytics", "Personal manager 24/7"]
         : ["Cheksiz kontent", "Professional prodakshn", "Kengaytirilgan tahlil", "Shaxsiy menejer 24/7"],
     },
   ];
 
-  const popularLabel = i18n.language === 'ru' ? 'Самый популярный' : i18n.language === 'en' ? 'Most Popular' : 'Eng mashhur';
-  const perMonth = i18n.language === 'ru' ? '/мес' : i18n.language === 'en' ? '/mo' : '/oy';
-  const selectLabel = i18n.language === 'ru' ? 'Выбрать' : i18n.language === 'en' ? 'Select' : 'Tanlash';
-  const orderLabel = i18n.language === 'ru' ? 'Заказать' : i18n.language === 'en' ? 'Order Now' : 'Buyurtma berish';
+  const popularLabel = i18n.language.split('-')[0] === 'ru' ? 'Самый популярный' : i18n.language.split('-')[0] === 'en' ? 'Most Popular' : 'Eng mashhur';
+  const perMonth = i18n.language.split('-')[0] === 'ru' ? '/мес' : i18n.language.split('-')[0] === 'en' ? '/mo' : '/oy';
+  const selectLabel = i18n.language.split('-')[0] === 'ru' ? 'Выбрать' : i18n.language.split('-')[0] === 'en' ? 'Select' : 'Tanlash';
+  const orderLabel = i18n.language.split('-')[0] === 'ru' ? 'Заказать' : i18n.language.split('-')[0] === 'en' ? 'Order Now' : 'Buyurtma berish';
 
   return (
     <main className="min-h-screen pt-32 pb-20">
@@ -75,7 +75,7 @@ export default function Services() {
 
         <div className="space-y-24 mb-32">
           {services.map((service, index) => {
-            const lc = getLocalizedContent(service.content, i18n.language);
+            const lc = getLocalizedContent(service.content, i18n.language.split('-')[0]);
             return (
               <motion.div
                 key={service.id}
@@ -120,9 +120,9 @@ export default function Services() {
 
         <div className="mb-24">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">SMM {i18n.language === 'ru' ? 'Пакеты' : i18n.language === 'en' ? 'Packages' : 'Paketlar'}</h2>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">SMM {i18n.language.split('-')[0] === 'ru' ? 'Пакеты' : i18n.language.split('-')[0] === 'en' ? 'Packages' : 'Paketlar'}</h2>
             <p className="text-muted-foreground text-lg">
-              {i18n.language === 'ru' ? 'Выберите подходящий тариф для вашего бизнеса' : i18n.language === 'en' ? 'Choose a plan that fits your business' : 'O\'z biznesingizga mos tarifni tanlang'}
+              {i18n.language.split('-')[0] === 'ru' ? 'Выберите подходящий тариф для вашего бизнеса' : i18n.language.split('-')[0] === 'en' ? 'Choose a plan that fits your business' : 'O\'z biznesingizga mos tarifni tanlang'}
             </p>
           </div>
 

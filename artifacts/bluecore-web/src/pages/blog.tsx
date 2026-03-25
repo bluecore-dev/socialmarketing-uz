@@ -75,7 +75,7 @@ export default function Blog() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPosts.map((post) => {
-              const lc = getLocalizedContent(post.content, i18n.language);
+              const lc = getLocalizedContent(post.content, i18n.language.split('-')[0]);
               return (
                 <Link key={post.id} href={`/blog/${post.slug}`}>
                   <div className="bg-card rounded-3xl overflow-hidden shadow-sm border border-border hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col h-full cursor-pointer">

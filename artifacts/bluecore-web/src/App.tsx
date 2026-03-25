@@ -1,4 +1,5 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { lazy, Suspense } from "react";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,25 +7,28 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingElements } from "@/components/layout/FloatingElements";
 import { AuthProvider } from "@/lib/auth-context";
+import { AnimatePresence, motion } from "framer-motion";
 import "@/lib/i18n";
-import Home from "@/pages/home";
-import Services from "@/pages/services";
-import Cases from "@/pages/cases";
-import About from "@/pages/about";
-import Blog from "@/pages/blog";
-import BlogPost from "@/pages/blog-post";
-import Contact from "@/pages/contact";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import Cabinet from "@/pages/cabinet";
-import AdminDashboard from "@/pages/admin/dashboard";
-import AdminLeads from "@/pages/admin/leads";
-import AdminBlog from "@/pages/admin/blog";
-import AdminCases from "@/pages/admin/cases";
-import AdminServices from "@/pages/admin/services";
-import AdminUsers from "@/pages/admin/users";
-import AdminBanners from "@/pages/admin/banners";
-import NotFound from "@/pages/not-found";
+
+const Home = lazy(() => import("@/pages/home"));
+const Services = lazy(() => import("@/pages/services"));
+const Cases = lazy(() => import("@/pages/cases"));
+const CaseDetail = lazy(() => import("@/pages/case-detail"));
+const About = lazy(() => import("@/pages/about"));
+const Blog = lazy(() => import("@/pages/blog"));
+const BlogPost = lazy(() => import("@/pages/blog-post"));
+const Contact = lazy(() => import("@/pages/contact"));
+const Login = lazy(() => import("@/pages/login"));
+const Register = lazy(() => import("@/pages/register"));
+const Cabinet = lazy(() => import("@/pages/cabinet"));
+const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
+const AdminLeads = lazy(() => import("@/pages/admin/leads"));
+const AdminBlog = lazy(() => import("@/pages/admin/blog"));
+const AdminCases = lazy(() => import("@/pages/admin/cases"));
+const AdminServices = lazy(() => import("@/pages/admin/services"));
+const AdminUsers = lazy(() => import("@/pages/admin/users"));
+const AdminBanners = lazy(() => import("@/pages/admin/banners"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,41 +39,101 @@ const queryClient = new QueryClient({
   }
 });
 
+const pageVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+};
+
+const pageTransition = { duration: 0.25 };
+
+function PageWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={pageTransition}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function PageLoader() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+    </div>
+  );
+}
+
+function PublicRoutes() {
+  const [location] = useLocation();
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <div className="flex-1">
+        <Suspense fallback={<PageLoader />}>
+          <AnimatePresence mode="wait">
+            <Switch key={location}>
+              <Route path="/">
+                {() => <PageWrapper><Home /></PageWrapper>}
+              </Route>
+              <Route path="/services">
+                {() => <PageWrapper><Services /></PageWrapper>}
+              </Route>
+              <Route path="/cases/:slug">
+                {() => <PageWrapper><CaseDetail /></PageWrapper>}
+              </Route>
+              <Route path="/cases">
+                {() => <PageWrapper><Cases /></PageWrapper>}
+              </Route>
+              <Route path="/about">
+                {() => <PageWrapper><About /></PageWrapper>}
+              </Route>
+              <Route path="/blog/:slug">
+                {() => <PageWrapper><BlogPost /></PageWrapper>}
+              </Route>
+              <Route path="/blog">
+                {() => <PageWrapper><Blog /></PageWrapper>}
+              </Route>
+              <Route path="/contact">
+                {() => <PageWrapper><Contact /></PageWrapper>}
+              </Route>
+              <Route path="/cabinet">
+                {() => <PageWrapper><Cabinet /></PageWrapper>}
+              </Route>
+              <Route>
+                {() => <PageWrapper><NotFound /></PageWrapper>}
+              </Route>
+            </Switch>
+          </AnimatePresence>
+        </Suspense>
+      </div>
+      <Footer />
+      <FloatingElements />
+    </div>
+  );
+}
+
 function Router() {
   return (
-    <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin/leads" component={AdminLeads} />
-      <Route path="/admin/blog" component={AdminBlog} />
-      <Route path="/admin/cases" component={AdminCases} />
-      <Route path="/admin/services" component={AdminServices} />
-      <Route path="/admin/users" component={AdminUsers} />
-      <Route path="/admin/banners" component={AdminBanners} />
-      <Route>
-        {() => (
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <div className="flex-1">
-              <Switch>
-                <Route path="/" component={Home} />
-                <Route path="/services" component={Services} />
-                <Route path="/cases" component={Cases} />
-                <Route path="/about" component={About} />
-                <Route path="/blog/:slug" component={BlogPost} />
-                <Route path="/blog" component={Blog} />
-                <Route path="/contact" component={Contact} />
-                <Route path="/cabinet" component={Cabinet} />
-                <Route component={NotFound} />
-              </Switch>
-            </div>
-            <Footer />
-            <FloatingElements />
-          </div>
-        )}
-      </Route>
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/leads" component={AdminLeads} />
+        <Route path="/admin/blog" component={AdminBlog} />
+        <Route path="/admin/cases" component={AdminCases} />
+        <Route path="/admin/services" component={AdminServices} />
+        <Route path="/admin/users" component={AdminUsers} />
+        <Route path="/admin/banners" component={AdminBanners} />
+        <Route component={PublicRoutes} />
+      </Switch>
+    </Suspense>
   );
 }
 

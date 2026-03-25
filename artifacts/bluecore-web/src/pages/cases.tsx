@@ -171,7 +171,7 @@ export default function Cases() {
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
             {filteredCases.map((cs, idx) => (
-              <BeforeAfterCard key={cs.id} cs={cs} idx={idx} lang={i18n.language} />
+              <BeforeAfterCard key={cs.id} cs={cs} idx={idx} lang={i18n.language.split('-')[0]} />
             ))}
           </AnimatePresence>
         </motion.div>

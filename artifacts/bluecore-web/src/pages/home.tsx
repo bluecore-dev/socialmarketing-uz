@@ -234,7 +234,7 @@ export default function Home() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {servicesQuery.data?.map((service) => {
-                const sc = getServiceContent(service.content, i18n.language);
+                const sc = getServiceContent(service.content, i18n.language.split('-')[0]);
                 return (
                   <motion.div key={service.id} variants={staggerItem}>
                     <Link href={`/services#${service.slug}`}>
@@ -276,7 +276,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {(casesQuery.data?.slice(0, 3) || []).map((cs) => {
               const csWithContent = cs as typeof cs & { content?: unknown; industry?: string };
-              const cc = getCaseContent(csWithContent.content, i18n.language);
+              const cc = getCaseContent(csWithContent.content, i18n.language.split('-')[0]);
               return (
               <div
                 key={cs.id}
