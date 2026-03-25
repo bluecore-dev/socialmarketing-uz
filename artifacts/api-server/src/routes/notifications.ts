@@ -8,8 +8,10 @@ const router = Router();
 
 router.get("/admin/all", requireAuth, requireRole("admin"), async (req: AuthRequest, res) => {
   try {
-    const page = Math.max(1, parseInt(String(req.query["page"] || "1")));
-    const limit = Math.min(100, Math.max(1, parseInt(String(req.query["limit"] || "50"))));
+    const rawPage = parseInt(String(req.query["page"] || "1"));
+    const rawLimit = parseInt(String(req.query["limit"] || "50"));
+    const page = Math.max(1, isNaN(rawPage) ? 1 : rawPage);
+    const limit = Math.min(100, Math.max(1, isNaN(rawLimit) ? 50 : rawLimit));
     const offset = (page - 1) * limit;
     const notifications = await db.select().from(notificationsTable)
       .orderBy(desc(notificationsTable.createdAt))

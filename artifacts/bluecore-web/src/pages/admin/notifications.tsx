@@ -3,15 +3,13 @@ import { AdminLayout } from "./layout";
 import {
   useGetAllNotificationsAdmin,
   useSendNotification,
-  useMarkNotificationRead,
-  useMarkAllNotificationsRead,
   useDeleteNotification,
   getGetAllNotificationsAdminQueryKey,
 } from "@workspace/api-client-react";
 import type { Notification, NotificationInput } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { Bell, Send, Trash2, Check, CheckCheck, Loader2, X, User, Globe, ShieldOff } from "lucide-react";
+import { Bell, Send, Trash2, Loader2, X, User, Globe, ShieldOff } from "lucide-react";
 
 const TYPE_OPTIONS = [
   { value: "info", label: "Ma'lumot" },
@@ -59,14 +57,6 @@ export default function AdminNotifications() {
     },
   });
 
-  const markReadMutation = useMarkNotificationRead({
-    mutation: { onSuccess: invalidate },
-  });
-
-  const markAllMutation = useMarkAllNotificationsRead({
-    mutation: { onSuccess: invalidate },
-  });
-
   const deleteMutation = useDeleteNotification({
     mutation: { onSuccess: invalidate },
   });
@@ -89,7 +79,7 @@ export default function AdminNotifications() {
     });
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const totalCount = notifications.length;
 
   if (user?.role !== "admin") {
     return (
@@ -114,20 +104,10 @@ export default function AdminNotifications() {
               Xabarnomalar
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              {unreadCount > 0 ? `${unreadCount} ta o'qilmagan` : "Hammasi o'qilgan"}
+              {totalCount > 0 ? `Jami ${totalCount} ta xabarnoma` : "Xabarnomalar yo'q"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <button
-                onClick={() => markAllMutation.mutate()}
-                disabled={markAllMutation.isPending}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 transition-all"
-              >
-                {markAllMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4" />}
-                Barchasini o'qildi
-              </button>
-            )}
             <button
               onClick={() => setShowForm(true)}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition-all"
@@ -290,16 +270,6 @@ export default function AdminNotifications() {
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
-                  {!notif.read && (
-                    <button
-                      onClick={() => markReadMutation.mutate({ id: String(notif.id) })}
-                      disabled={markReadMutation.isPending}
-                      title="O'qildi"
-                      className="p-1.5 text-gray-500 hover:text-green-400 hover:bg-green-500/10 rounded-lg transition-all"
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
-                  )}
                   <button
                     onClick={() => deleteMutation.mutate({ id: String(notif.id) })}
                     disabled={deleteMutation.isPending}
