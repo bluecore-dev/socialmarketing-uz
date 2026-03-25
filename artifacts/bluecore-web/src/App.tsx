@@ -34,6 +34,8 @@ const AdminCases = lazy(() => import("@/pages/admin/cases"));
 const AdminServices = lazy(() => import("@/pages/admin/services"));
 const AdminUsers = lazy(() => import("@/pages/admin/users"));
 const AdminBanners = lazy(() => import("@/pages/admin/banners"));
+const AdminNotifications = lazy(() => import("@/pages/admin/notifications"));
+const AdminTranslations = lazy(() => import("@/pages/admin/translations"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -180,6 +182,8 @@ function Router() {
         <Route path="/admin/services" component={AdminServices} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/banners" component={AdminBanners} />
+        <Route path="/admin/notifications" component={AdminNotifications} />
+        <Route path="/admin/translations" component={AdminTranslations} />
         <Route component={PublicRoutes} />
       </Switch>
     </Suspense>

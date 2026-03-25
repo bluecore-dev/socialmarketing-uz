@@ -17,6 +17,8 @@ const navItems = [
   { href: "/admin/services", label: "Xizmatlar", icon: Package },
   { href: "/admin/users", label: "Foydalanuvchilar", icon: Users },
   { href: "/admin/banners", label: "Bannerlar", icon: Image },
+  { href: "/admin/notifications", label: "Xabarnomalar", icon: Bell },
+  { href: "/admin/translations", label: "Tarjimalar", icon: Globe },
 ];
 
 interface AdminLayoutProps {
