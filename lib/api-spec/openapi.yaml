@@ -1,22 +1,41 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BlueCore SMM Agency API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: leads
+    description: Lead management
+  - name: users
+    description: User management
+  - name: blog
+    description: Blog posts
+  - name: cases
+    description: Case studies
+  - name: services
+    description: Services
+  - name: banners
+    description: Banners
+  - name: notifications
+    description: Notifications
+  - name: admin
+    description: Admin dashboard
+  - name: translations
+    description: i18n translations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +43,1638 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "409":
+          description: Email already exists
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      responses:
+        "200":
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                required: [accessToken]
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required: [email]
+      responses:
+        "200":
+          description: Reset link sent
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password with token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+              required: [token, password]
+      responses:
+        "200":
+          description: Password reset successful
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateMe
+      tags: [auth]
+      summary: Update current user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteMe
+      tags: [auth]
+      summary: Delete own account (soft delete)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account deleted
+
+  /auth/change-password:
+    patch:
+      operationId: changePassword
+      tags: [auth]
+      summary: Change password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+              required: [currentPassword, newPassword]
+      responses:
+        "200":
+          description: Password changed
+
+  /leads:
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Submit a lead (consultation request)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLeadRequest"
+      responses:
+        "201":
+          description: Lead created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    get:
+      operationId: getLeads
+      tags: [leads]
+      summary: Get leads list (admin/manager only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: service
+          in: query
+          schema:
+            type: string
+        - name: lang
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Leads list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadsResponse"
+
+  /leads/export/csv:
+    get:
+      operationId: exportLeadsCsv
+      tags: [leads]
+      summary: Export leads as CSV (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get a single lead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lead detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    patch:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update lead status or assignee
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                assignedTo:
+                  type: number
+      responses:
+        "200":
+          description: Lead updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/notes:
+    post:
+      operationId: addLeadNote
+      tags: [leads]
+      summary: Add a note to a lead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+              required: [text]
+      responses:
+        "200":
+          description: Note added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /blog:
+    get:
+      operationId: getBlogPosts
+      tags: [blog]
+      summary: Get published blog posts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPostsResponse"
+    post:
+      operationId: createBlogPost
+      tags: [blog]
+      summary: Create a blog post (admin/manager)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostInput"
+      responses:
+        "201":
+          description: Blog post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+  /blog/{slug}:
+    get:
+      operationId: getBlogPost
+      tags: [blog]
+      summary: Get a single blog post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+  /blog/{id}:
+    put:
+      operationId: updateBlogPost
+      tags: [blog]
+      summary: Update a blog post
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostInput"
+      responses:
+        "200":
+          description: Blog post updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+    delete:
+      operationId: deleteBlogPost
+      tags: [blog]
+      summary: Delete a blog post (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+
+  /blog/saved/list:
+    get:
+      operationId: getSavedPosts
+      tags: [blog]
+      summary: Get saved posts for current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Saved posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlogPost"
+
+  /blog/{id}/save:
+    post:
+      operationId: toggleSavePost
+      tags: [blog]
+      summary: Toggle save/unsave a blog post
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Save status toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved:
+                    type: boolean
+                required: [saved]
+
+  /cases:
+    get:
+      operationId: getCaseStudies
+      tags: [cases]
+      summary: Get case studies
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: platform
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Case studies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CaseStudy"
+    post:
+      operationId: createCaseStudy
+      tags: [cases]
+      summary: Create a case study (admin/manager)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaseStudyInput"
+      responses:
+        "201":
+          description: Case study created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseStudy"
+
+  /cases/{slug}:
+    get:
+      operationId: getCaseStudy
+      tags: [cases]
+      summary: Get a single case study
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Case study
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseStudy"
+
+  /cases/{id}:
+    put:
+      operationId: updateCaseStudy
+      tags: [cases]
+      summary: Update a case study
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaseStudyInput"
+      responses:
+        "200":
+          description: Case study updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseStudy"
+    delete:
+      operationId: deleteCaseStudy
+      tags: [cases]
+      summary: Delete a case study (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+
+  /services:
+    get:
+      operationId: getServices
+      tags: [services]
+      summary: Get all active services
+      responses:
+        "200":
+          description: Services list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+    post:
+      operationId: createService
+      tags: [services]
+      summary: Create a service (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Service created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+
+  /services/{slug}:
+    get:
+      operationId: getService
+      tags: [services]
+      summary: Get a single service by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+
+  /services/{id}:
+    put:
+      operationId: updateService
+      tags: [services]
+      summary: Update a service (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "200":
+          description: Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+
+  /banners:
+    get:
+      operationId: getBanners
+      tags: [banners]
+      summary: Get active banners
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: lang
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Active banners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Banner"
+    post:
+      operationId: createBanner
+      tags: [banners]
+      summary: Create a banner (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BannerInput"
+      responses:
+        "201":
+          description: Banner created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+
+  /banners/admin/all:
+    get:
+      operationId: getAllBanners
+      tags: [banners]
+      summary: Get all banners (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All banners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Banner"
+
+  /banners/{id}:
+    put:
+      operationId: updateBanner
+      tags: [banners]
+      summary: Update a banner (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BannerInput"
+      responses:
+        "200":
+          description: Banner updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+    delete:
+      operationId: deleteBanner
+      tags: [banners]
+      summary: Delete a banner (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+
+  /banners/{id}/click:
+    post:
+      operationId: trackBannerClick
+      tags: [banners]
+      summary: Track a banner click
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Click tracked
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get notifications for current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+    post:
+      operationId: sendNotification
+      tags: [notifications]
+      summary: Send notification to user(s) (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationInput"
+      responses:
+        "201":
+          description: Notification sent
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All marked as read
+
+  /users:
+    get:
+      operationId: getUsers
+      tags: [users]
+      summary: Get users list (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersResponse"
+
+  /users/{id}/role:
+    patch:
+      operationId: updateUserRole
+      tags: [users]
+      summary: Update user role (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+              required: [role]
+      responses:
+        "200":
+          description: Role updated
+
+  /users/{id}/block:
+    patch:
+      operationId: updateUserBlock
+      tags: [users]
+      summary: Block or unblock a user (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blocked:
+                  type: boolean
+              required: [blocked]
+      responses:
+        "200":
+          description: Block status updated
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/leads-flow:
+    get:
+      operationId: getLeadsFlow
+      tags: [admin]
+      summary: Get leads flow for last 30 days
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Leads flow data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FlowDataPoint"
+
+  /admin/source-stats:
+    get:
+      operationId: getSourceStats
+      tags: [admin]
+      summary: Get leads by source
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Source stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatDataPoint"
+
+  /admin/lang-stats:
+    get:
+      operationId: getLangStats
+      tags: [admin]
+      summary: Get leads by language
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lang stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatDataPoint"
+
+  /admin/service-stats:
+    get:
+      operationId: getServiceStats
+      tags: [admin]
+      summary: Get leads by service type
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Service stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatDataPoint"
+
+  /translations/{lang}/{namespace}:
+    get:
+      operationId: getTranslations
+      tags: [translations]
+      summary: Get translations for a namespace
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: namespace
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Translations object
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+
+  /translations/admin/all:
+    get:
+      operationId: getAllTranslations
+      tags: [translations]
+      summary: Get all translations (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All translations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Translation"
+
+  /translations:
+    put:
+      operationId: upsertTranslation
+      tags: [translations]
+      summary: Create or update a translation (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslationInput"
+      responses:
+        "200":
+          description: Translation saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+        company:
+          type: string
+        lang:
+          type: string
+      required: [name, email, password]
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserBasic"
+      required: [accessToken, user]
+
+    UserBasic:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        lang:
+          type: string
+        avatar:
+          type: string
+      required: [id, name, email, role, lang]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        company:
+          type: string
+        avatar:
+          type: string
+        lang:
+          type: string
+        isVerified:
+          type: boolean
+        isBlocked:
+          type: boolean
+        lastLogin:
+          type: string
+        lastLoginIp:
+          type: string
+        createdAt:
+          type: string
+      required: [id, name, email, role, lang]
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        company:
+          type: string
+        lang:
+          type: string
+        avatar:
+          type: string
+
+    UsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+      required: [users, total, page, limit]
+
+    CreateLeadRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        company:
+          type: string
+        service:
+          type: string
+        message:
+          type: string
+        source:
+          type: string
+        lang:
+          type: string
+      required: [name, phone]
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        company:
+          type: string
+        service:
+          type: string
+        message:
+          type: string
+        source:
+          type: string
+        status:
+          type: string
+        assignedTo:
+          type: number
+        notes:
+          type: array
+          items:
+            type: object
+        ip:
+          type: string
+        lang:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, name, phone, status, lang]
+
+    LeadsResponse:
+      type: object
+      properties:
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+      required: [leads, total, page, limit]
+
+    MultiLangContent:
+      type: object
+      properties:
+        uz:
+          type: object
+        ru:
+          type: object
+        en:
+          type: object
+
+    BlogPostInput:
+      type: object
+      properties:
+        slug:
+          type: string
+        status:
+          type: string
+        category:
+          type: string
+        image:
+          type: string
+        content:
+          $ref: "#/components/schemas/MultiLangContent"
+      required: [slug, content]
+
+    BlogPost:
+      type: object
+      properties:
+        id:
+          type: number
+        slug:
+          type: string
+        status:
+          type: string
+        category:
+          type: string
+        image:
+          type: string
+        authorId:
+          type: number
+        content:
+          $ref: "#/components/schemas/MultiLangContent"
+        views:
+          type: number
+        publishedAt:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, slug, status, content]
+
+    BlogPostsResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlogPost"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+      required: [posts, total, page, limit]
+
+    CaseStudyInput:
+      type: object
+      properties:
+        slug:
+          type: string
+        client:
+          type: string
+        platform:
+          type: string
+        beforeImage:
+          type: string
+        afterImage:
+          type: string
+        metrics:
+          type: object
+        status:
+          type: string
+        content:
+          $ref: "#/components/schemas/MultiLangContent"
+        featured:
+          type: boolean
+        order:
+          type: number
+      required: [slug, client]
+
+    CaseStudy:
+      type: object
+      properties:
+        id:
+          type: number
+        slug:
+          type: string
+        client:
+          type: string
+        platform:
+          type: string
+        beforeImage:
+          type: string
+        afterImage:
+          type: string
+        metrics:
+          type: object
+        status:
+          type: string
+        content:
+          $ref: "#/components/schemas/MultiLangContent"
+        featured:
+          type: boolean
+        order:
+          type: number
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, slug, client, status]
+
+    ServiceInput:
+      type: object
+      properties:
+        slug:
+          type: string
+        icon:
+          type: string
+        order:
+          type: number
+        active:
+          type: boolean
+        content:
+          $ref: "#/components/schemas/MultiLangContent"
+        pricing:
+          type: object
+      required: [slug, content]
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: number
+        slug:
+          type: string
+        icon:
+          type: string
+        order:
+          type: number
+        active:
+          type: boolean
+        content:
+          $ref: "#/components/schemas/MultiLangContent"
+        pricing:
+          type: object
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, slug, active, content]
+
+    BannerInput:
+      type: object
+      properties:
+        type:
+          type: string
+        active:
+          type: boolean
+        startDate:
+          type: string
+        endDate:
+          type: string
+        targetLang:
+          type: string
+        targetAudience:
+          type: string
+        abVariant:
+          type: string
+        content:
+          type: object
+      required: [content]
+
+    Banner:
+      type: object
+      properties:
+        id:
+          type: number
+        type:
+          type: string
+        active:
+          type: boolean
+        startDate:
+          type: string
+        endDate:
+          type: string
+        targetLang:
+          type: string
+        targetAudience:
+          type: string
+        abVariant:
+          type: string
+        content:
+          type: object
+        clicks:
+          type: number
+        impressions:
+          type: number
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, type, active, content]
+
+    NotificationInput:
+      type: object
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        type:
+          type: string
+        link:
+          type: string
+        userId:
+          type: number
+      required: [title, body]
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        type:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        read:
+          type: boolean
+        link:
+          type: string
+        createdAt:
+          type: string
+      required: [id, type, title, body, read]
+
+    AdminStats:
+      type: object
+      properties:
+        todayLeads:
+          type: number
+        yesterdayLeads:
+          type: number
+        monthLeads:
+          type: number
+        prevMonthLeads:
+          type: number
+        totalUsers:
+          type: number
+        activeUsers:
+          type: number
+      required: [todayLeads, yesterdayLeads, monthLeads, prevMonthLeads, totalUsers, activeUsers]
+
+    FlowDataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        count:
+          type: number
+      required: [date, count]
+
+    StatDataPoint:
+      type: object
+      properties:
+        source:
+          type: string
+        lang:
+          type: string
+        service:
+          type: string
+        count:
+          type: number
+      required: [count]
+
+    TranslationInput:
+      type: object
+      properties:
+        namespace:
+          type: string
+        key:
+          type: string
+        uz:
+          type: string
+        ru:
+          type: string
+        en:
+          type: string
+      required: [namespace, key]
+
+    Translation:
+      type: object
+      properties:
+        id:
+          type: number
+        namespace:
+          type: string
+        key:
+          type: string
+        uz:
+          type: string
+        ru:
+          type: string
+        en:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, namespace, key]

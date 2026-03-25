@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+export type ExportLeadsCsvParams = {
+  from?: string;
+  to?: string;
+  status?: string;
+};

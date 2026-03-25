@@ -5,7 +5,9 @@
  * BlueCore SMM Agency API
  * OpenAPI spec version: 0.1.0
  */
+import type { UserBasic } from "./userBasic";
 
-export interface HealthStatus {
-  status: string;
+export interface AuthResponse {
+  accessToken: string;
+  user: UserBasic;
 }

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+export type GetUsersParams = {
+  role?: string;
+  search?: string;
+  page?: string;
+  limit?: string;
+};
