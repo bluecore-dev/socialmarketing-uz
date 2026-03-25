@@ -13,19 +13,20 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
   const loginMutation = useLogin({
     mutation: {
       onSuccess: (data: any) => {
         if (data?.accessToken) {
-          storeToken(data.accessToken);
+          storeToken(data.accessToken, rememberMe);
         }
         refetch();
         setLocation("/cabinet");
       },
       onError: (err: any) => {
-        setError(err?.response?.data?.error || "Xatolik yuz berdi. Qayta urinib ko'ring.");
+        setError(err?.response?.data?.error || t("auth.login.errorInvalid"));
       },
     },
   });
@@ -34,7 +35,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     if (!email || !password) {
-      setError("Email va parolni kiriting.");
+      setError(t("auth.login.errorRequired"));
       return;
     }
     loginMutation.mutate({ data: { email, password } });
@@ -50,8 +51,8 @@ export default function Login() {
               BlueCore
             </span>
           </Link>
-          <h1 className="text-3xl font-bold text-foreground">Kirish</h1>
-          <p className="text-muted-foreground mt-2">Shaxsiy kabinetingizga xush kelibsiz</p>
+          <h1 className="text-3xl font-bold text-foreground">{t("auth.login.title")}</h1>
+          <p className="text-muted-foreground mt-2">{t("auth.login.subtitle")}</p>
         </div>
 
         <div className="bg-card border border-border rounded-3xl shadow-xl p-8">
@@ -63,7 +64,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2">Email</label>
+              <label className="block text-sm font-semibold text-foreground mb-2">{t("auth.login.email")}</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -79,7 +80,12 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2">Parol</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-foreground">{t("auth.login.password")}</label>
+                <Link href="/forgot-password" className="text-xs text-primary hover:underline font-medium">
+                  {t("auth.login.forgotPassword")}
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -101,6 +107,19 @@ export default function Login() {
               </div>
             </div>
 
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+              />
+              <label htmlFor="rememberMe" className="text-sm text-muted-foreground cursor-pointer select-none">
+                {t("auth.login.rememberMe")}
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loginMutation.isPending}
@@ -109,25 +128,25 @@ export default function Login() {
               {loginMutation.isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Kirilyapti...
+                  {t("auth.login.submitting")}
                 </>
               ) : (
-                "Kirish"
+                t("auth.login.submit")
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            Akkauntingiz yo'qmi?{" "}
+            {t("auth.login.noAccount")}{" "}
             <Link href="/register" className="text-primary font-semibold hover:underline">
-              Ro'yxatdan o'tish
+              {t("auth.login.register")}
             </Link>
           </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           <Link href="/" className="hover:text-primary transition-colors">
-            ← Bosh sahifaga qaytish
+            {t("auth.login.backHome")}
           </Link>
         </p>
       </div>

@@ -35,10 +35,14 @@ export function getStoredToken(): string | null {
   }
 }
 
-export function storeToken(token: string): void {
+export function storeToken(token: string, persist = false): void {
   try {
     sessionStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(TOKEN_KEY, token);
+    if (persist) {
+      localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+    }
   } catch {}
 }
 

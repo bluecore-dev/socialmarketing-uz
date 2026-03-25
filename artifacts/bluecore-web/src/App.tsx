@@ -20,6 +20,8 @@ const BlogPost = lazy(() => import("@/pages/blog-post"));
 const Contact = lazy(() => import("@/pages/contact"));
 const Login = lazy(() => import("@/pages/login"));
 const Register = lazy(() => import("@/pages/register"));
+const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
+const ResetPassword = lazy(() => import("@/pages/reset-password"));
 const Cabinet = lazy(() => import("@/pages/cabinet"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const AdminLeads = lazy(() => import("@/pages/admin/leads"));
@@ -124,6 +126,8 @@ function Router() {
       <Switch>
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/leads" component={AdminLeads} />
         <Route path="/admin/blog" component={AdminBlog} />
