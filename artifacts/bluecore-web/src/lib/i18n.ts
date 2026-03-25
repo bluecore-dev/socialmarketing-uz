@@ -110,6 +110,41 @@ const resources = {
         howWeWork: "Qanday ishlaymiz?",
         partners: "Hamkorlarimiz",
       },
+      home: {
+        servicesSubtitle: "Biznesingiz ehtiyojlariga moslashtirilgan professional xizmatlar majmuasi.",
+        casesSubtitle: "Bizning natijalarimiz so'zlardan ko'ra ko'proq narsani aytadi.",
+        allCases: "Barcha keyslar",
+        contentTitle: "Kontent Yaratish San'ati",
+        contentSubtitle: "Biz yaratgan vizual kontentlar millionlab ko'rishlar yig'adi.",
+        caseResults: "Natijalari",
+        caseReadMore: "To'liq o'qish",
+        testimonialQuote: "BlueCore bilan ishlashni boshlaganimizdan so'ng, sotuvlarimiz 3 barobarga oshdi. Ular o'z ishining ustasi va har doim yangi ideyalar bilan kelishadi.",
+        ctaTitle: "Biznesingizni portlatishga tayyormisiz?",
+        ctaSubtitle: "Shunchaki anketani to'ldiring va mutaxassislarimiz siz uchun bepul SMM audit va strategiya rejasini tuzib berishadi.",
+        countdownLabel: "Chegirma tugashiga qoldi:",
+        countdown: {
+          days: "Kun",
+          hours: "Soat",
+          minutes: "Daqiqa",
+          seconds: "Soniya",
+        },
+        problemTitle: "Mijozlarimiz qanday",
+        problemTitleHighlight: "muammolar",
+        problemTitleSuffix: "bilan kelishadi?",
+        problems: [
+          "SMM uchun byudjet sarflanadi, lekin savdo o'smaydi",
+          "Kontent sifatsiz, brend imidji tushib ketgan",
+          "Targeting reklama qimmat va samarasiz ishlayapti",
+          "SMM mutaxassislari doimiy ravishda almashaveradi"
+        ],
+        solutionTitle: "BlueCore",
+        solutionTitleHighlight: "yechimlari",
+        solutions: [
+          { title: "Strategik SMM", desc: "Faqat chiroyli rasmlar emas, savdoga yo'naltirilgan strategiya." },
+          { title: "Kompleks yondashuv", desc: "Kopirayter, dizayner, mobilograf va targetologdan iborat butun jamoa." },
+          { title: "Performance Marketing", desc: "Har bir sarflangan so'mning ROI sini hisoblaymiz." }
+        ],
+      },
       pages: {
         services: {
           title: "Xizmatlarimiz",
@@ -277,6 +312,41 @@ const resources = {
         howWeWork: "Как мы работаем?",
         partners: "Наши партнёры",
       },
+      home: {
+        servicesSubtitle: "Профессиональный комплекс услуг, адаптированный под нужды вашего бизнеса.",
+        casesSubtitle: "Наши результаты говорят больше, чем слова.",
+        allCases: "Все кейсы",
+        contentTitle: "Искусство создания контента",
+        contentSubtitle: "Визуальный контент, который мы создаём, собирает миллионы просмотров.",
+        caseResults: "Результаты",
+        caseReadMore: "Читать полностью",
+        testimonialQuote: "С момента начала работы с BlueCore наши продажи выросли в 3 раза. Они профессионалы своего дела и всегда приходят с новыми идеями.",
+        ctaTitle: "Готовы взорвать свой бизнес?",
+        ctaSubtitle: "Просто заполните анкету, и наши специалисты составят для вас бесплатный SMM-аудит и план стратегии.",
+        countdownLabel: "До окончания скидки:",
+        countdown: {
+          days: "Дней",
+          hours: "Часов",
+          minutes: "Минут",
+          seconds: "Секунд",
+        },
+        problemTitle: "С какими",
+        problemTitleHighlight: "проблемами",
+        problemTitleSuffix: "приходят наши клиенты?",
+        problems: [
+          "Бюджет тратится на SMM, но продажи не растут",
+          "Контент некачественный, имидж бренда падает",
+          "Таргетированная реклама дорогая и неэффективная",
+          "SMM-специалисты постоянно меняются"
+        ],
+        solutionTitle: "BlueCore",
+        solutionTitleHighlight: "решения",
+        solutions: [
+          { title: "Стратегический SMM", desc: "Не просто красивые картинки, а стратегия, нацеленная на продажи." },
+          { title: "Комплексный подход", desc: "Целая команда из копирайтера, дизайнера, мобилографа и таргетолога." },
+          { title: "Performance Marketing", desc: "Считаем ROI каждого потраченного сума." }
+        ],
+      },
       pages: {
         services: {
           title: "Наши услуги",
@@ -443,6 +513,41 @@ const resources = {
         whyUs: "Why us?",
         howWeWork: "How we work?",
         partners: "Our Partners",
+      },
+      home: {
+        servicesSubtitle: "A professional suite of services tailored to your business needs.",
+        casesSubtitle: "Our results speak louder than words.",
+        allCases: "All cases",
+        contentTitle: "The Art of Content Creation",
+        contentSubtitle: "The visual content we create gathers millions of views.",
+        caseResults: "Results",
+        caseReadMore: "Read more",
+        testimonialQuote: "Since we started working with BlueCore, our sales tripled. They are true professionals who always come with fresh ideas.",
+        ctaTitle: "Ready to explode your business?",
+        ctaSubtitle: "Simply fill in the form and our specialists will prepare a free SMM audit and strategy plan for you.",
+        countdownLabel: "Discount ends in:",
+        countdown: {
+          days: "Days",
+          hours: "Hours",
+          minutes: "Minutes",
+          seconds: "Seconds",
+        },
+        problemTitle: "What",
+        problemTitleHighlight: "problems",
+        problemTitleSuffix: "do our clients come with?",
+        problems: [
+          "Budget is spent on SMM, but sales don't grow",
+          "Content is low quality, brand image is falling",
+          "Targeted ads are expensive and ineffective",
+          "SMM specialists keep changing constantly"
+        ],
+        solutionTitle: "BlueCore",
+        solutionTitleHighlight: "solutions",
+        solutions: [
+          { title: "Strategic SMM", desc: "Not just pretty pictures, but a strategy aimed at driving sales." },
+          { title: "Comprehensive Approach", desc: "A full team of copywriter, designer, videographer, and targeting specialist." },
+          { title: "Performance Marketing", desc: "We track ROI for every dollar spent." }
+        ],
       },
       pages: {
         services: {

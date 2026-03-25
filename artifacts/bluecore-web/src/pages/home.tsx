@@ -12,16 +12,30 @@ import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
-function getServiceContent(content: any, lang: string) {
+function getServiceContent(content: unknown, lang: string) {
   if (!content) return { title: "", description: "", features: [] };
-  const obj = content[lang] || content["uz"] || content["en"] || content["ru"] || {};
-  return { title: obj.title || "", description: obj.description || "", features: obj.features || [] };
+  const obj = content as Record<string, Record<string, unknown>>;
+  const loc = obj[lang] || obj["uz"] || obj["en"] || obj["ru"] || {};
+  return {
+    title: (loc.title as string) || "",
+    description: (loc.description as string) || "",
+    features: (loc.features as string[]) || [],
+  };
 }
 
-function getCaseContent(content: any, lang: string) {
+function getCaseContent(content: unknown, lang: string) {
   if (!content) return { title: "", description: "" };
-  const obj = content[lang] || content["uz"] || content["en"] || content["ru"] || {};
-  return { title: obj.title || "", description: obj.description || "" };
+  const obj = content as Record<string, Record<string, unknown>>;
+  const loc = obj[lang] || obj["uz"] || obj["en"] || obj["ru"] || {};
+  return {
+    title: (loc.title as string) || "",
+    description: (loc.description as string) || "",
+  };
+}
+
+interface SolutionItem {
+  title: string;
+  desc: string;
 }
 
 export default function Home() {
@@ -43,6 +57,9 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const problems = t('home.problems', { returnObjects: true }) as string[];
+  const solutions = t('home.solutions', { returnObjects: true }) as SolutionItem[];
 
   return (
     <main className="min-h-screen pt-20">
@@ -122,7 +139,7 @@ export default function Home() {
             {[
               { label: t('hero.stat1'), value: "500+", icon: TrendingUp },
               { label: t('hero.stat2'), value: "98%", icon: Users },
-              { label: t('hero.stat3'), value: "5 Yil", icon: Zap }
+              { label: t('hero.stat3'), value: "5+", icon: Zap }
             ].map((stat, i) => (
               <div key={i} className="glass-panel rounded-2xl p-6 flex items-center gap-4 hover:-translate-y-1 transition-transform">
                 <div className="w-12 h-12 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0">
@@ -158,14 +175,11 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Mijozlarimiz qanday <span className="text-destructive">muammolar</span> bilan kelishadi?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                {t('home.problemTitle')} <span className="text-destructive">{t('home.problemTitleHighlight')}</span> {t('home.problemTitleSuffix')}
+              </h2>
               <ul className="space-y-4">
-                {[
-                  "SMM uchun byudjet sarflanadi, lekin savdo o'smaydi",
-                  "Kontent sifatsiz, brend imidji tushib ketgan",
-                  "Targeting reklama qimmat va samarasiz ishlayapti",
-                  "SMM mutaxassislari doimiy ravishda almashaveradi"
-                ].map((text, i) => (
+                {Array.isArray(problems) && problems.map((text, i) => (
                   <li key={i} className="flex items-start gap-3 p-4 rounded-xl bg-destructive/5 border border-destructive/10">
                     <div className="w-6 h-6 rounded-full bg-destructive/20 text-destructive flex items-center justify-center shrink-0 mt-0.5">✕</div>
                     <span className="font-medium text-foreground">{text}</span>
@@ -176,13 +190,11 @@ export default function Home() {
             
             <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-8 md:p-10 rounded-3xl border border-primary/10 relative">
               <div className="absolute -top-6 -right-6 w-24 h-24 bg-accent/20 blur-2xl rounded-full"></div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">BlueCore <span className="text-primary">yechimlari</span></h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                {t('home.solutionTitle')} <span className="text-primary">{t('home.solutionTitleHighlight')}</span>
+              </h2>
               <ul className="space-y-6">
-                {[
-                  { title: "Strategik SMM", desc: "Faqat chiroyli rasmlar emas, savdoga yo'naltirilgan strategiya." },
-                  { title: "Kompleks yondashuv", desc: "Kopirayter, dizayner, mobilograf va targetologdan iborat butun jamoa." },
-                  { title: "Performance Marketing", desc: "Har bir sarflangan so'mning ROI sini hisoblaymiz." }
-                ].map((item, i) => (
+                {Array.isArray(solutions) && solutions.map((item, i) => (
                   <li key={i} className="flex gap-4">
                     <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
                       <CheckCircle className="w-5 h-5" />
@@ -204,7 +216,7 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">{t('sections.services')}</h2>
-            <p className="text-lg text-muted-foreground">Biznesingiz ehtiyojlariga moslashtirilgan professional xizmatlar majmuasi.</p>
+            <p className="text-lg text-muted-foreground">{t('home.servicesSubtitle')}</p>
           </div>
 
           {servicesQuery.isLoading ? (
@@ -254,16 +266,17 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
             <div className="max-w-2xl">
               <h2 className="text-3xl md:text-5xl font-bold mb-4">{t('sections.cases')}</h2>
-              <p className="text-lg text-muted-foreground">Bizning natijalarimiz so'zlardan ko'ra ko'proq narsani aytadi.</p>
+              <p className="text-lg text-muted-foreground">{t('home.casesSubtitle')}</p>
             </div>
             <Link href="/cases" className="px-6 py-3 border-2 border-border font-semibold rounded-xl hover:border-primary hover:text-primary transition-all">
-              Barcha keyslar
+              {t('home.allCases')}
             </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {(casesQuery.data?.slice(0, 3) || []).map((cs) => {
-              const cc = getCaseContent((cs as any).content, i18n.language);
+              const csWithContent = cs as typeof cs & { content?: unknown; industry?: string };
+              const cc = getCaseContent(csWithContent.content, i18n.language);
               return (
               <div key={cs.id} className="group relative h-[400px] rounded-3xl overflow-hidden cursor-pointer">
                 <div className="absolute inset-0 transition-all duration-500">
@@ -271,7 +284,7 @@ export default function Home() {
                   <div className="absolute inset-0">
                     <img src={"https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80"} alt={cs.client} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                      <div className="uppercase text-xs font-bold text-accent mb-2 tracking-wider">{(cs as any).industry}</div>
+                      <div className="uppercase text-xs font-bold text-accent mb-2 tracking-wider">{csWithContent.industry}</div>
                       <h3 className="text-2xl font-bold text-white mb-1">{cs.client}</h3>
                       <p className="text-white/80 line-clamp-1">{cc.description}</p>
                     </div>
@@ -279,7 +292,7 @@ export default function Home() {
                   
                   {/* Back: Metrics */}
                   <div className="absolute inset-0 backface-hidden rotate-y-180 bg-primary p-8 flex flex-col justify-center text-white">
-                    <h3 className="text-2xl font-bold mb-6 border-b border-white/20 pb-4">{cs.client} Natijalari</h3>
+                    <h3 className="text-2xl font-bold mb-6 border-b border-white/20 pb-4">{cs.client} {t('home.caseResults')}</h3>
                     <div className="space-y-4">
                       {Object.entries(cs.metrics || {}).map(([key, val]) => (
                         <div key={key} className="flex justify-between items-center">
@@ -289,7 +302,7 @@ export default function Home() {
                       ))}
                     </div>
                     <Link href={`/cases/${cs.slug}`} className="mt-8 py-3 bg-white text-primary text-center font-bold rounded-xl hover:bg-accent hover:text-white transition-colors">
-                      To'liq o'qish
+                      {t('home.caseReadMore')}
                     </Link>
                   </div>
                 </div>
@@ -304,14 +317,13 @@ export default function Home() {
       <Section className="bg-foreground text-background">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-16 max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">Kontent Yaratish San'ati</h2>
-            <p className="text-muted-foreground">Biz yaratgan vizual kontentlar millionlab ko'rishlar yig'adi.</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">{t('home.contentTitle')}</h2>
+            <p className="text-muted-foreground">{t('home.contentSubtitle')}</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {[1,2,3,4,5,6,7,8].map((i) => (
               <div key={i} className={cn("relative group rounded-2xl overflow-hidden bg-card/10 aspect-square", i === 1 || i === 4 ? "md:col-span-2 md:row-span-2" : "")}>
-                {/* fallback placeholder image for portfolio */}
                 <img src={`https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=600&q=80&random=${i}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" alt="Portfolio item" />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/40">
@@ -353,10 +365,9 @@ export default function Home() {
                     <div className="flex gap-1 text-accent mb-6">
                       {[1,2,3,4,5].map(s => <Star key={s} className="w-5 h-5 fill-current" />)}
                     </div>
-                    <p className="text-foreground text-lg mb-8 flex-1">"BlueCore bilan ishlashni boshlaganimizdan so'ng, sotuvlarimiz 3 barobarga oshdi. Ular o'z ishining ustasi va har doim yangi ideyalar bilan kelishadi."</p>
+                    <p className="text-foreground text-lg mb-8 flex-1">"{t('home.testimonialQuote')}"</p>
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-muted overflow-hidden">
-                        {/* fallback avatar */}
                         <img src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80&random=${i}`} alt="Avatar" />
                       </div>
                       <div>
@@ -375,7 +386,6 @@ export default function Home() {
       {/* FINAL CTA & CONTACT FORM */}
       <Section className="py-0" id="contact">
         <div className="bg-gradient-to-br from-primary via-secondary to-primary relative overflow-hidden">
-          {/* Decorative circles */}
           <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-accent/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2"></div>
           
           <div className="container mx-auto px-4 md:px-6 py-24 relative z-10">
@@ -383,20 +393,20 @@ export default function Home() {
               
               <div className="text-white">
                 <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
-                  Biznesingizni portlatishga tayyormisiz?
+                  {t('home.ctaTitle')}
                 </h2>
                 <p className="text-xl text-white/80 mb-10 max-w-lg">
-                  Shunchaki anketani to'ldiring va mutaxassislarimiz siz uchun bepul SMM audit va strategiya rejasini tuzib berishadi.
+                  {t('home.ctaSubtitle')}
                 </p>
                 
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-sm">
-                  <p className="text-sm text-white/70 font-bold uppercase tracking-wider mb-3">Chegirma tugashiga qoldi:</p>
+                  <p className="text-sm text-white/70 font-bold uppercase tracking-wider mb-3">{t('home.countdownLabel')}</p>
                   <div className="flex gap-4">
                     {[
-                      { l: "Kun", v: timeLeft.d },
-                      { l: "Soat", v: timeLeft.h },
-                      { l: "Daqiqa", v: timeLeft.m },
-                      { l: "Soniya", v: timeLeft.s },
+                      { l: t('home.countdown.days'), v: timeLeft.d },
+                      { l: t('home.countdown.hours'), v: timeLeft.h },
+                      { l: t('home.countdown.minutes'), v: timeLeft.m },
+                      { l: t('home.countdown.seconds'), v: timeLeft.s },
                     ].map((time, i) => (
                       <div key={i} className="flex flex-col items-center">
                         <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-2xl font-black text-white shadow-inner mb-1">
