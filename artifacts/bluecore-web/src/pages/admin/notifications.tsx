@@ -39,9 +39,12 @@ export default function AdminNotifications() {
     userId: undefined,
   });
   const [formError, setFormError] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
-  const notifQuery = useGetAllNotificationsAdmin({ page: 1, limit: 100 });
+  const notifQuery = useGetAllNotificationsAdmin({ page, limit: PAGE_SIZE });
   const notifications: Notification[] = (notifQuery.data as Notification[] | undefined) ?? [];
+  const hasMore = notifications.length === PAGE_SIZE;
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getGetAllNotificationsAdminQueryKey() });
 
@@ -217,6 +220,11 @@ export default function AdminNotifications() {
             <div className="flex justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
+          ) : notifQuery.isError ? (
+            <div className="text-center py-16 bg-gray-900 border border-red-800/40 rounded-2xl">
+              <p className="text-red-400 text-sm">Xabarnomalarni yuklashda xatolik yuz berdi.</p>
+              <button onClick={() => notifQuery.refetch()} className="mt-3 text-xs text-primary underline">Qayta urinish</button>
+            </div>
           ) : notifications.length === 0 ? (
             <div className="text-center py-16 bg-gray-900 border border-gray-800 rounded-2xl">
               <Bell className="w-12 h-12 text-gray-700 mx-auto mb-3" />
@@ -283,6 +291,27 @@ export default function AdminNotifications() {
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {!notifQuery.isLoading && !notifQuery.isError && (page > 1 || hasMore) && (
+          <div className="flex items-center justify-between pt-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1 || notifQuery.isFetching}
+              className="px-4 py-2 text-sm text-gray-400 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-xl border border-gray-700 transition-all"
+            >
+              ← Oldingi
+            </button>
+            <span className="text-sm text-gray-500">{page}-sahifa</span>
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={!hasMore || notifQuery.isFetching}
+              className="px-4 py-2 text-sm text-gray-400 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-xl border border-gray-700 transition-all"
+            >
+              Keyingi →
+            </button>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

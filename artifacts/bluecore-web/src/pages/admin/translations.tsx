@@ -211,6 +211,11 @@ export default function AdminTranslations() {
           <div className="flex justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
+        ) : translationsQuery.isError ? (
+          <div className="text-center py-16 bg-gray-900 border border-red-800/40 rounded-2xl">
+            <p className="text-red-400 text-sm">Tarjimalarni yuklashda xatolik yuz berdi.</p>
+            <button onClick={() => translationsQuery.refetch()} className="mt-3 text-xs text-primary underline">Qayta urinish</button>
+          </div>
         ) : Object.keys(grouped).length === 0 ? (
           <div className="text-center py-16 bg-gray-900 border border-gray-800 rounded-2xl">
             <Globe className="w-12 h-12 text-gray-700 mx-auto mb-3" />
