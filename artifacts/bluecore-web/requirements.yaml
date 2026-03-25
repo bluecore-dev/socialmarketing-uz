@@ -1,0 +1,27 @@
+packages:
+  "framer-motion": "For high-quality scroll reveals, page transitions, and 3D card hover effects"
+  "swiper": "For the testimonials slider component"
+  "i18next": "Core internationalization library for 3-language support"
+  "react-i18next": "React bindings for i18next"
+  "i18next-browser-languagedetector": "To detect and persist user language preferences"
+  "react-hook-form": "For robust lead form state management"
+  "@hookform/resolvers": "For integrating Zod validation with React Hook Form"
+  "clsx": "For conditional tailwind class merging"
+  "tailwind-merge": "For conditional tailwind class merging"
+  "lucide-react": "For beautiful consistent icons"
+  "date-fns": "For formatting blog post and case study dates"
+
+images:
+  - path: "artifacts/bluecore-web/public/images/hero-bg.png"
+    description: "Abstract gradient mesh background in deep navy blue, bright blue, and electric cyan with soft lighting and a premium modern corporate aesthetic"
+    aspect_ratio: "16:9"
+  - path: "artifacts/bluecore-web/public/images/about-team.png"
+    description: "Professional diverse creative agency team working together in a modern bright office with blue accents, high quality photography style"
+    aspect_ratio: "16:9"
+  - path: "artifacts/bluecore-web/public/images/contact-bg.png"
+    description: "Abstract architectural 3D render in deep dark blue with neon cyan glowing accents, minimal and premium"
+    aspect_ratio: "16:9"
+
+notes:
+  - "The app uses React Query hooks generated in @workspace/api-client-react."
+  - "Translations are handled client-side for UI strings and via JSONB properties (uz, ru, en) for API content."

@@ -1,8 +1,30 @@
-# Workspace
+# Workspace — BlueCore SMM Agency (socialmarketing.uz)
 
-## Overview
+## Project Goal
+Full-stack SMM agency website: React+Vite frontend (3 languages: uz/ru/en), Express.js backend, PostgreSQL/Drizzle ORM, JWT auth with user cabinet, full admin CMS panel.
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+## Brand
+- Primary: `#1A4F8A`, Secondary: `#0077CC`, Accent: `#00C4FF`
+- Font: Plus Jakarta Sans
+- WhatsApp: wa.me/998911419988
+
+## Admin Access
+- Email: `admin@bluecore.uz`, Password: `admin1234`, Role: `admin`
+- Admin panel: `/admin` (dark theme, requires admin or manager role)
+
+## Auth Implementation
+- POST /api/auth/login returns `{accessToken, user}` in response JSON
+- Frontend stores `accessToken` in sessionStorage/localStorage (key: `bluecore_access_token`)
+- `setAuthTokenGetter` in auth-context sets Bearer token for all API requests
+- `/api/*` requests proxied by Vite from port 25703 → Express API on port 8080
+- RefreshToken stored in httpOnly cookie (not used for initial auth check)
+
+## Content Structure
+- All DB content is JSONB `{uz: {...}, ru: {...}, en: {...}}` — use `getLocalizedContent()` helpers
+- Blog API returns `{posts: [...], total, page, limit}` — use `blogQuery.data?.posts`
+- Cases API returns array directly
+- `useGetUsers` returns `{users: [...]}` — access as `data?.users`
+- API params for pagination are strings: `page: "1"`, `limit: "20"` (not numbers)
 
 ## Stack
 

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "BlueCore — SMM Agency"
+version = "1.0.0"
+id = "artifacts/bluecore-web"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25703
+
+[services.development]
+run = "pnpm --filter @workspace/bluecore-web run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/bluecore-web", "run", "build" ]
+publicDir = "artifacts/bluecore-web/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25703"
+BASE_PATH = "/"
