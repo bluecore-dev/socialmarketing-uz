@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useGetServices } from "@workspace/api-client-react";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, X, Minus } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 
@@ -165,7 +165,125 @@ export default function Services() {
           </div>
         </div>
 
+        {/* Comparison Table */}
+        <ComparisonTable lang={i18n.language} />
+
       </div>
     </main>
+  );
+}
+
+function ComparisonTable({ lang }: { lang: string }) {
+  const isRu = lang === 'ru';
+  const isEn = lang === 'en';
+
+  const title = isRu ? 'Сравнение пакетов' : isEn ? 'Package Comparison' : 'Paketlarni solishtirish';
+  const subtitle = isRu ? 'Выберите лучший пакет для своего бизнеса' : isEn ? 'Find the right plan for your business' : 'Biznesingiz uchun eng yaxshi paketni tanlang';
+
+  type FeatureValue = boolean | string;
+  interface ComparisonRow {
+    feature: string;
+    start: FeatureValue;
+    business: FeatureValue;
+    pro: FeatureValue;
+  }
+
+  const rows: ComparisonRow[] = isRu ? [
+    { feature: "Постов в месяц", start: "15", business: "20", pro: "Безлим." },
+    { feature: "Историй в месяц", start: "10", business: "20", pro: "Безлим." },
+    { feature: "Дизайн постов", start: "Базовый", business: "Премиум", pro: "Брендовый" },
+    { feature: "Reels / TikTok видео", start: false, business: true, pro: true },
+    { feature: "Настройка таргетинга", start: false, business: true, pro: true },
+    { feature: "A/B тестирование", start: false, business: false, pro: true },
+    { feature: "Еженедельный отчёт", start: false, business: true, pro: true },
+    { feature: "Персональный менеджер", start: false, business: false, pro: true },
+    { feature: "Управление комментариями", start: false, business: true, pro: true },
+    { feature: "Профессиональная съёмка", start: false, business: false, pro: true },
+  ] : isEn ? [
+    { feature: "Posts per month", start: "15", business: "20", pro: "Unlimited" },
+    { feature: "Stories per month", start: "10", business: "20", pro: "Unlimited" },
+    { feature: "Post design", start: "Basic", business: "Premium", pro: "Branded" },
+    { feature: "Reels / TikTok videos", start: false, business: true, pro: true },
+    { feature: "Targeting setup", start: false, business: true, pro: true },
+    { feature: "A/B testing", start: false, business: false, pro: true },
+    { feature: "Weekly report", start: false, business: true, pro: true },
+    { feature: "Personal manager", start: false, business: false, pro: true },
+    { feature: "Comment management", start: false, business: true, pro: true },
+    { feature: "Professional production", start: false, business: false, pro: true },
+  ] : [
+    { feature: "Oylik postlar soni", start: "15", business: "20", pro: "Cheksiz" },
+    { feature: "Oylik hikoyalar soni", start: "10", business: "20", pro: "Cheksiz" },
+    { feature: "Post dizayni", start: "Asosiy", business: "Premium", pro: "Brendli" },
+    { feature: "Reels / TikTok video", start: false, business: true, pro: true },
+    { feature: "Targeting sozlash", start: false, business: true, pro: true },
+    { feature: "A/B test", start: false, business: false, pro: true },
+    { feature: "Haftalik hisobot", start: false, business: true, pro: true },
+    { feature: "Shaxsiy menejer", start: false, business: false, pro: true },
+    { feature: "Izohlarni boshqarish", start: false, business: true, pro: true },
+    { feature: "Professional suratga olish", start: false, business: false, pro: true },
+  ];
+
+  function Cell({ val }: { val: FeatureValue }) {
+    if (val === true) return <Check className="w-5 h-5 text-primary mx-auto" />;
+    if (val === false) return <X className="w-5 h-5 text-muted-foreground/40 mx-auto" />;
+    if (val === "") return <Minus className="w-4 h-4 text-muted-foreground/40 mx-auto" />;
+    return <span className="font-semibold text-foreground text-sm">{val}</span>;
+  }
+
+  return (
+    <div className="mb-16">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold mb-3">{title}</h2>
+        <p className="text-muted-foreground">{subtitle}</p>
+      </div>
+
+      <div className="overflow-x-auto rounded-3xl border border-border shadow-lg">
+        <table className="w-full min-w-[600px]">
+          <thead>
+            <tr className="bg-muted/60">
+              <th className="text-left px-6 py-4 font-semibold text-muted-foreground text-sm uppercase tracking-wide w-1/2">
+                {isRu ? 'Функция' : isEn ? 'Feature' : 'Xususiyat'}
+              </th>
+              <th className="text-center px-4 py-4 font-bold text-foreground">Start</th>
+              <th className="text-center px-4 py-4 font-bold text-primary bg-primary/5">
+                Business <span className="block text-xs font-normal text-accent normal-case">{isRu ? 'Популярный' : isEn ? 'Popular' : 'Mashhur'}</span>
+              </th>
+              <th className="text-center px-4 py-4 font-bold text-foreground">Pro</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i} className={`border-t border-border ${i % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}>
+                <td className="px-6 py-4 text-sm text-foreground/80 font-medium">{row.feature}</td>
+                <td className="text-center px-4 py-4"><Cell val={row.start} /></td>
+                <td className="text-center px-4 py-4 bg-primary/5"><Cell val={row.business} /></td>
+                <td className="text-center px-4 py-4"><Cell val={row.pro} /></td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="bg-muted/60 border-t-2 border-border">
+              <td className="px-6 py-5 font-bold text-foreground">{isRu ? 'Цена' : isEn ? 'Price' : 'Narx'}</td>
+              <td className="text-center px-4 py-5 font-black text-2xl text-foreground">300$</td>
+              <td className="text-center px-4 py-5 font-black text-2xl text-primary bg-primary/10">600$</td>
+              <td className="text-center px-4 py-5 font-black text-2xl text-foreground">1000$+</td>
+            </tr>
+            <tr className="bg-background border-t border-border">
+              <td className="px-6 py-5" />
+              {['Start', 'Business', 'Pro'].map((name) => (
+                <td key={name} className={`text-center px-4 py-5 ${name === 'Business' ? 'bg-primary/5' : ''}`}>
+                  <Link
+                    href="/contact"
+                    className={`inline-block px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${name === 'Business' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-muted text-foreground hover:bg-primary hover:text-white'}`}
+                  >
+                    {isRu ? 'Выбрать' : isEn ? 'Choose' : 'Tanlash'}
+                  </Link>
+                </td>
+              ))}
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
   );
 }

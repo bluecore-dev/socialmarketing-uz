@@ -278,10 +278,30 @@ export default function Home() {
               const csWithContent = cs as typeof cs & { content?: unknown; industry?: string };
               const cc = getCaseContent(csWithContent.content, i18n.language);
               return (
-              <div key={cs.id} className="group relative h-[400px] rounded-3xl overflow-hidden cursor-pointer">
-                <div className="absolute inset-0 transition-all duration-500">
-                  {/* Front: Image */}
-                  <div className="absolute inset-0">
+              <div
+                key={cs.id}
+                className="group relative h-[400px] rounded-3xl cursor-pointer"
+                style={{ perspective: "1200px" }}
+              >
+                {/* Inner flip container */}
+                <div
+                  className="relative w-full h-full rounded-3xl overflow-visible"
+                  style={{
+                    transformStyle: "preserve-3d",
+                    transition: "transform 0.65s cubic-bezier(0.4,0,0.2,1)",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "rotateY(180deg)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "rotateY(0deg)";
+                  }}
+                >
+                  {/* Front face */}
+                  <div
+                    className="absolute inset-0 rounded-3xl overflow-hidden"
+                    style={{ backfaceVisibility: "hidden" }}
+                  >
                     <img src={"https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80"} alt={cs.client} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
                       <div className="uppercase text-xs font-bold text-accent mb-2 tracking-wider">{csWithContent.industry}</div>
@@ -289,9 +309,12 @@ export default function Home() {
                       <p className="text-white/80 line-clamp-1">{cc.description}</p>
                     </div>
                   </div>
-                  
-                  {/* Back: Metrics */}
-                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-primary p-8 flex flex-col justify-center text-white">
+
+                  {/* Back face: Metrics */}
+                  <div
+                    className="absolute inset-0 rounded-3xl bg-primary p-8 flex flex-col justify-center text-white overflow-hidden"
+                    style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                  >
                     <h3 className="text-2xl font-bold mb-6 border-b border-white/20 pb-4">{cs.client} {t('home.caseResults')}</h3>
                     <div className="space-y-4">
                       {Object.entries(cs.metrics || {}).map(([key, val]) => (

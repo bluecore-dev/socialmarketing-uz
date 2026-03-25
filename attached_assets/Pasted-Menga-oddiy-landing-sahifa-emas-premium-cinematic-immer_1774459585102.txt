@@ -1,0 +1,250 @@
+Menga oddiy landing sahifa emas — premium, cinematic, 
+immersive brend experience yarat.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎥 HERO — FULLSCREEN VIDEO BACKGROUND
+
+- Sahifa ochilganda darhol fullscreen video chiqsin
+- autoplay, muted, loop, playsinline atributlari bo'lsin
+- Video ustida qoraroq cinematic gradient overlay:
+  rgba(0,0,0,0.45) dan rgba(0,5,20,0.65) gacha (pastdan yuqoriga)
+- Overlay ustida subtle vignette (chekkalar qoraroq bo'lsin)
+- Video loading paytida silliq skeleton/blur placeholder chiqsin
+
+📱 MOBIL OPTIMIZATSIYA (MUHIM):
+- <picture> yoki <source media="(max-width: 768px)"> orqali
+  mobil uchun alohida 720p, 2–3MB video serve qilinsin
+- Desktop uchun 1080p, 8–12MB video
+- Video 5–8 soniyalik seamless loop bo'lsin
+- Agar connection sekin bo'lsa (navigator.connection?.effectiveType 
+  === '2g' yoki 'slow-2g') — avtomatik poster image'ga fallback bo'lsin
+- preload="none" mobil'da, preload="metadata" desktop'da
+- fetchpriority="high" hero video'ga
+- Video saytni bloklamasin: defer + intersection observer ishlatilsin
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🖼️ HERO CONTENT (MINIMAL, FOKUS — VIZUAL)
+
+- Markazda faqat: Logo (SVG yoki minimal wordmark) 
+  + 1 ta qisqa tagline (maks 5–6 so'z)
+- Tagline uchun kuchli entrance animatsiya:
+  blur(20px) → blur(0) + opacity 0→1 + translateY(30px)→0
+  0.8s easing: cubic-bezier(0.16, 1, 0.3, 1)
+- Pastda bitta CTA tugma: outlined, hover'da fill bo'lsin,
+  shimmer/glow effekt bilan
+- Eng pastda: animated scroll indicator (mouse icon yoki 
+  arrow, pulse animatsiya)
+- Hero'da fon video bilan content orasida subtle 
+  depth parallax bo'lsin (mouse movement bilan)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔲 HEADER (STICKY, GLASS MORPHISM)
+
+- Position: fixed top, full-width, z-index: 1000
+- Glass effect: backdrop-filter: blur(20px) saturate(180%)
+  + background: rgba(0, 8, 30, 0.35)
+- Border bottom: 1px solid rgba(255,255,255,0.08)
+- Scroll'da header biroz kichiklashsin (padding kamaysin),
+  va blur intensivligi ortsin — smooth transition bilan
+- Chapda: Logo (SVG, 32–40px balandlik)
+- O'ngda: Hamburger icon + CTA tugma ("Bog'lanish")
+- CTA tugma: pill shape, gradient border yoki glow,
+  hover'da background to'ladi
+- Header ochilishi: sahifa load bo'lganda 
+  translateY(-100%) → translateY(0), delay: 0.3s
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☰ HAMBURGER MENU (FULLSCREEN OVERLAY, APPLE STYLE)
+
+HAMBURGER ICON:
+- 3 chiziq → X animatsiyasi (smooth morph, 0.4s)
+- Hover'da chiziqlar subtle scale effekt
+
+OVERLAY MENYU:
+- Fullscreen: position fixed, 100vw × 100vh
+- Background: rgba(0, 5, 20, 0.96) + 
+  backdrop-filter: blur(40px) saturate(200%)
+- Ochilish animatsiyasi:
+  clip-path: circle(0% at top right) → 
+  clip-path: circle(150% at top right), 0.7s ease-in-out
+  YO'QSA: opacity 0 + scale(0.97) → opacity 1 + scale(1)
+
+MENU ITEMLAR:
+- Staggered animatsiya: har biri 0.08s delay bilan
+  translateX(-40px) + opacity 0 → translateX(0) + opacity 1
+- Item hover'da: glow effekt + subtle scale(1.02)
+- Font: katta (clamp(2.5rem, 8vw, 6rem)), thin/light weight
+- Tagida: ijtimoiy tarmoq ikonalari va kontakt info
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📜 SCROLL ANIMATSIYALAR (INTERSECTION OBSERVER)
+
+Har bir section elementlari scroll'da chiqayotganda:
+
+FADE + SLIDE UP:
+  opacity: 0 → 1, translateY(60px) → translateY(0)
+  duration: 0.9s, easing: cubic-bezier(0.16, 1, 0.3, 1)
+
+BLUR TO CLEAR:
+  filter: blur(12px) → blur(0), opacity 0 → 1
+  duration: 0.8s
+
+SCALE IN:
+  scale(0.92) + opacity 0 → scale(1) + opacity 1
+
+STAGGER CARDS:
+  Har biri 0.12s delay bilan ketma-ket chiqsin
+
+PARALLAX (YENGIL):
+  Section backgroundlari scroll tezligida 
+  0.3–0.5x nisbatda sekinroq harakat qilsin
+  (pure CSS transform yoki requestAnimationFrame)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 MOBIL UX (ALOHIDA E'TIBOR)
+
+- 100% responsive, mobile-first approach
+- 1 ustunli layout (grid → 1 col mobil'da)
+- Barcha touch targets: minimum 48×48px
+- Pastda sticky CTA bar:
+  position: fixed, bottom: 0, full-width
+  Glass background + "Hozir Bog'lanish" tugmasi
+  Scroll qilib pastga ketganda chiqsin (JS trigger)
+- Hamburger menu: touch area katta, 
+  swipe-to-close imkoniyati bo'lsin
+- Animatsiyalar mobil'da: 
+  prefers-reduced-motion media query ishlatilsin,
+  og'ir animatsiyalar soddalashtirilsin
+- Font sizes: clamp() bilan fluid typography
+- Sections orasida generous padding (mobil'da 60–80px)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎨 DIZAYN SISTEMA
+
+RANGLAR:
+  --color-bg: #00050F          (qovoq qora-ko'k)
+  --color-surface: #040D1F     (section bg)
+  --color-accent: #0057FF      (asosiy ko'k)
+  --color-accent-2: #00C6FF    (yorqin cyan)
+  --color-text: #F0F4FF        (asosiy matn)
+  --color-muted: #6B7A99       (ikkinchi darajali)
+  --color-border: rgba(255,255,255,0.07)
+
+GRADIENT:
+  Linear: #0057FF → #00C6FF (diagonal, 135deg)
+  Glow: radial-gradient(ellipse, 
+    rgba(0,87,255,0.25) center, transparent 70%)
+
+TIPOGRAFIYA:
+  Display: "Cormorant Garamond" yoki "Playfair Display"
+           (elegant, luxury feel)
+  Body: "DM Sans" yoki "Outfit" 
+        (clean, modern, readable)
+  Mono accents: "JetBrains Mono" (details uchun)
+  
+  Fluid sizing: clamp(1rem, 2.5vw, 1.25rem) body
+                clamp(3rem, 10vw, 8rem) hero heading
+
+SHADOWS & GLOW:
+  Cards: 0 0 40px rgba(0,87,255,0.12)
+  Hover: 0 0 60px rgba(0,198,255,0.2)
+  Text glow: text-shadow: 0 0 40px rgba(0,198,255,0.3)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 TEXNIK TALABLAR
+
+FRAMEWORK:
+  - Next.js 14 (App Router) yoki React 18
+  - TypeScript ishlatilsin
+  - Tailwind CSS + CSS Modules (asosiy stillar uchun)
+
+ANIMATSIYA:
+  - Framer Motion (React komponentlari uchun)
+  - GSAP (murakkab timeline animatsiyalar uchun)
+  - CSS animations (simple, lightweight cases uchun)
+  - Lenis yoki locomotive-scroll (smooth scrolling)
+
+PERFORMANCE:
+  - Lighthouse score: 90+ mobile, 95+ desktop
+  - LCP < 2.5s, FID < 100ms, CLS < 0.1
+  - next/image bilan rasmlarni optimize qil
+  - Video: lazy load (IntersectionObserver)
+  - Font: next/font bilan self-host qilinsin
+  - Critical CSS inline bo'lsin
+
+KOD SIFATI:
+  - Barcha komponentlar alohida fayllarda
+  - Custom hooks (useScrollAnimation, useVideoFallback)
+  - Constants fayli (colors, timing, breakpoints)
+  - Izohlar (comments) muhim qismlarga yozilsin
+  - ESLint + Prettier konfiguratsiya bo'lsin
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 SAHIFA TUZILMASI
+
+1. HERO SECTION
+   └─ Fullscreen video bg
+   └─ Logo + tagline + CTA
+   └─ Scroll indicator
+
+2. ABOUT / XIZMATLAR SECTION
+   └─ Katta sarlavha (blur-in animatsiya)
+   └─ 3-ustunli cards (staggered reveal)
+   └─ Har bir cardda: icon glow, hover lift effekt
+
+3. RAQAMLAR / STATISTIKA SECTION
+   └─ Dark bg + glow accent
+   └─ Counter animatsiya (0 → N, scroll trigger)
+   └─ Horizontal line separator (animate width)
+
+4. PORTFOLIO / ISHLAR SECTION
+   └─ Masonry yoki asymmetric grid
+   └─ Hover'da: image scale + overlay fade
+   └─ Category filter (smooth reorder animatsiya)
+
+5. TESTIMONIALS SECTION
+   └─ Horizontal scroll carousel (touch-friendly)
+   └─ Auto-play + drag support
+   └─ Glass card design
+
+6. CTA / CONTACT SECTION
+   └─ Katta centered heading + glow bg
+   └─ Email input + submit tugma
+   └─ Social links
+
+7. FOOTER
+   └─ Minimal: logo + copyright + links
+   └─ Gradient top border
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ "WOW EFFEKT" DETALLARI
+
+- Custom cursor: kichik dot + katta ring, 
+  hover'da ring kengayadi (desktop only)
+- Noise texture overlay (3–5% opacity, fixed)
+  butun sayt ustida cinematic feel beradi
+- Subtle grain animatsiya (CSS @keyframes)
+- Section transition: clip-path wipe animatsiyasi
+- Page loader: logo reveal → 0.6s → fade out
+- Scroll progress bar: yuqorida ingichka 
+  gradient chiziq (scroll % bilan to'ladi)
+- Magnetic hover tugmalar: mouse yaqinlashganda 
+  tugma unga tortiladi (subtle, 15px radius)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MUHIM: Kod real ishlashi kerak. Placeholder text 
+va dummy content ishlat, lekin barcha animatsiya, 
+effekt va interaksiyalar to'liq ishlab tursin.
+Har bir detail — spacing, timing, easing — 
+premium Apple/Awwwards darajasida bo'lsin.
