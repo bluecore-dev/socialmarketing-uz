@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "bluecore_access_secret_2025_change_in_prod";
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
 
 export interface AuthPayload {
   userId: number;

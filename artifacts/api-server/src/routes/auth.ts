@@ -5,12 +5,14 @@ import { eq, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { z } from "zod";
 import { requireAuth, AuthRequest } from "../middleware/auth.js";
+import { validateBody } from "../middleware/validate.js";
 
 const router = Router();
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "bluecore_access_secret_2025_change_in_prod";
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "bluecore_refresh_secret_2025_change_in_prod";
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
 
 function generateTokens(userId: number, role: string) {
   const accessToken = jwt.sign({ userId, role }, ACCESS_SECRET, { expiresIn: "15m" });
@@ -18,17 +20,45 @@ function generateTokens(userId: number, role: string) {
   return { accessToken, refreshToken };
 }
 
-router.post("/register", async (req, res) => {
+const registerSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  password: z.string().min(8).max(128),
+  phone: z.string().max(20).optional(),
+  company: z.string().max(100).optional(),
+  lang: z.enum(["uz", "ru", "en"]).optional().default("uz"),
+});
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8).max(128),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8).max(128),
+});
+
+const updateMeSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  phone: z.string().max(20).nullable().optional(),
+  company: z.string().max(100).nullable().optional(),
+  lang: z.enum(["uz", "ru", "en"]).optional(),
+  avatar: z.string().url().nullable().optional(),
+});
+
+router.post("/register", validateBody(registerSchema), async (req, res) => {
   try {
     const { name, email, phone, password, company, lang } = req.body;
-    if (!name || !email || !password) {
-      res.status(400).json({ error: "Ism, email va parol majburiy" });
-      return;
-    }
-    if (password.length < 8) {
-      res.status(400).json({ error: "Parol kamida 8 ta belgi bo'lishi kerak" });
-      return;
-    }
     const existing = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase())).limit(1);
     if (existing.length > 0) {
       res.status(409).json({ error: "Bu email allaqachon ro'yxatdan o'tgan" });
@@ -60,13 +90,9 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", validateBody(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      res.status(400).json({ error: "Email va parol majburiy" });
-      return;
-    }
     const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase())).limit(1);
     if (!user) {
       res.status(401).json({ error: "Email yoki parol noto'g'ri" });
@@ -146,10 +172,10 @@ router.post("/refresh", async (req, res) => {
   }
 });
 
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", validateBody(forgotPasswordSchema), async (req, res) => {
   try {
     const { email } = req.body;
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.email, (email || "").toLowerCase())).limit(1);
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase())).limit(1);
     if (!user) {
       res.json({ success: true, message: "Agar bu email mavjud bo'lsa, havolani yuboramiz" });
       return;
@@ -166,13 +192,9 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", validateBody(resetPasswordSchema), async (req, res) => {
   try {
     const { token, password } = req.body;
-    if (!token || !password || password.length < 8) {
-      res.status(400).json({ error: "Token va kamida 8 ta belgili parol majburiy" });
-      return;
-    }
     const [user] = await db.select().from(usersTable)
       .where(eq(usersTable.passwordResetToken, token)).limit(1);
     if (!user || !user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
@@ -217,7 +239,7 @@ router.get("/me", requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
-router.patch("/me", requireAuth, async (req: AuthRequest, res) => {
+router.patch("/me", requireAuth, validateBody(updateMeSchema), async (req: AuthRequest, res) => {
   try {
     const { name, phone, company, lang, avatar } = req.body;
     const [updated] = await db.update(usersTable).set({
@@ -244,13 +266,9 @@ router.patch("/me", requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
-router.patch("/change-password", requireAuth, async (req: AuthRequest, res) => {
+router.patch("/change-password", requireAuth, validateBody(changePasswordSchema), async (req: AuthRequest, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword || newPassword.length < 8) {
-      res.status(400).json({ error: "Joriy parol va kamida 8 ta belgili yangi parol majburiy" });
-      return;
-    }
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.userId)).limit(1);
     if (!user?.password || !(await bcrypt.compare(currentPassword, user.password))) {
       res.status(401).json({ error: "Joriy parol noto'g'ri" });

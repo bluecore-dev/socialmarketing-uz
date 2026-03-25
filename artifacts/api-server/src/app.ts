@@ -1,10 +1,16 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import pinoHttp from "pino-http";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import router from "./routes/index.js";
 import { logger } from "./lib/logger.js";
+
+if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
+  logger.fatal("JWT_ACCESS_SECRET and JWT_REFRESH_SECRET environment variables are required");
+  process.exit(1);
+}
 
 const app: Express = express();
 
@@ -27,6 +33,11 @@ app.use(
     },
   }),
 );
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false,
+}));
 
 app.use(cors({
   origin: true,

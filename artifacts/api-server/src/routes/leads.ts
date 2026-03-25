@@ -2,17 +2,26 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { leadsTable } from "@workspace/db";
 import { eq, desc, and, sql, gte, lte } from "drizzle-orm";
+import { z } from "zod";
 import { requireAuth, requireRole, AuthRequest } from "../middleware/auth.js";
+import { validateBody } from "../middleware/validate.js";
+
+const createLeadSchema = z.object({
+  name: z.string().min(1).max(100),
+  phone: z.string().min(7).max(20),
+  email: z.string().email().optional(),
+  company: z.string().max(100).optional(),
+  service: z.string().max(50).optional(),
+  message: z.string().max(2000).optional(),
+  source: z.string().max(50).optional(),
+  lang: z.enum(["uz", "ru", "en"]).optional().default("uz"),
+});
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", validateBody(createLeadSchema), async (req, res) => {
   try {
     const { name, phone, email, company, service, message, source, lang } = req.body;
-    if (!name || !phone) {
-      res.status(400).json({ error: "Ism va telefon majburiy" });
-      return;
-    }
     const [lead] = await db.insert(leadsTable).values({
       name,
       phone,
