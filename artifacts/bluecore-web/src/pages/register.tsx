@@ -2,8 +2,14 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useRegister } from "@workspace/api-client-react";
+import type { AuthResponse } from "@workspace/api-client-react";
+import type { ErrorType } from "@workspace/api-client-react";
 import { useAuth, storeToken } from "@/lib/auth-context";
 import { Eye, EyeOff, Loader2, Lock, Mail, User, Phone, CheckCircle2, XCircle } from "lucide-react";
+
+interface ApiErrorData {
+  error?: string;
+}
 
 function getPasswordStrength(password: string): { score: number; label: string } {
   let score = 0;
@@ -34,17 +40,17 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
 
-  const registerMutation = useRegister({
+  const registerMutation = useRegister<ErrorType<ApiErrorData>>({
     mutation: {
-      onSuccess: (data: any) => {
+      onSuccess: (data: AuthResponse) => {
         if (data?.accessToken) {
           storeToken(data.accessToken, false);
         }
         refetch();
         setLocation("/cabinet");
       },
-      onError: (err: any) => {
-        setError(err?.response?.data?.error || t("common.error"));
+      onError: (err: ErrorType<ApiErrorData>) => {
+        setError(err?.data?.error ?? t("common.error"));
       },
     },
   });

@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   useLogout, useGetLeads, useUpdateMe, useChangePassword,
 } from "@workspace/api-client-react";
+import type { Lead } from "@workspace/api-client-react";
 import { useAuth, clearStoredToken } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,6 +15,43 @@ import {
 } from "lucide-react";
 
 type TabId = "overview" | "leads" | "notifications" | "saved" | "security";
+
+interface CabinetUser {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  phone?: string;
+  company?: string;
+  avatar?: string;
+}
+
+interface StatusMeta {
+  label: string;
+  color: string;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  new: "bg-blue-100 text-blue-700",
+  reviewing: "bg-yellow-100 text-yellow-700",
+  in_progress: "bg-green-100 text-green-700",
+  done: "bg-gray-100 text-gray-600",
+  rejected: "bg-red-100 text-red-600",
+};
+
+function getStatusMeta(status: string, t: TFunction): StatusMeta {
+  const statusLabels: Record<string, string> = {
+    new: t("auth.cabinet.status.new"),
+    reviewing: t("auth.cabinet.status.reviewing"),
+    in_progress: t("auth.cabinet.status.in_progress"),
+    done: t("auth.cabinet.status.done"),
+    rejected: t("auth.cabinet.status.rejected"),
+  };
+  return {
+    label: statusLabels[status] ?? status,
+    color: STATUS_COLORS[status] ?? "bg-gray-100 text-gray-600",
+  };
+}
 
 export default function Cabinet() {
   const { t } = useTranslation();
@@ -39,31 +78,15 @@ export default function Cabinet() {
     },
   });
 
-  const leadsQuery = useGetLeads(
-    { page: "1", limit: "20" },
-    { query: { enabled: isAuthenticated } }
-  );
-  const leads = (leadsQuery.data as any)?.leads || [];
+  const leadsQuery = useGetLeads({ page: "1", limit: "20" });
+  const leads: Lead[] = leadsQuery.data?.leads ?? [];
 
-  const getStatusMeta = (status: string) => {
-    const key = `auth.cabinet.status.${status}` as const;
-    const label = t(key as any);
-    const colors: Record<string, string> = {
-      new: "bg-blue-100 text-blue-700",
-      reviewing: "bg-yellow-100 text-yellow-700",
-      in_progress: "bg-green-100 text-green-700",
-      done: "bg-gray-100 text-gray-600",
-      rejected: "bg-red-100 text-red-600",
-    };
-    return { label, color: colors[status] || "bg-gray-100 text-gray-600" };
-  };
-
-  const tabs = [
-    { id: "overview" as const, label: t("auth.cabinet.tabs.overview"), icon: BarChart2 },
-    { id: "leads" as const, label: t("auth.cabinet.tabs.leads"), icon: MessageSquare },
-    { id: "notifications" as const, label: t("auth.cabinet.tabs.notifications"), icon: Bell },
-    { id: "saved" as const, label: t("auth.cabinet.tabs.saved"), icon: BookMarked },
-    { id: "security" as const, label: t("auth.cabinet.tabs.security"), icon: Shield },
+  const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
+    { id: "overview", label: t("auth.cabinet.tabs.overview"), icon: BarChart2 },
+    { id: "leads", label: t("auth.cabinet.tabs.leads"), icon: MessageSquare },
+    { id: "notifications", label: t("auth.cabinet.tabs.notifications"), icon: Bell },
+    { id: "saved", label: t("auth.cabinet.tabs.saved"), icon: BookMarked },
+    { id: "security", label: t("auth.cabinet.tabs.security"), icon: Shield },
   ];
 
   if (isLoading) {
@@ -86,7 +109,7 @@ export default function Cabinet() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg">
-              {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">{user?.name}</h1>
@@ -131,8 +154,8 @@ export default function Cabinet() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
           >
-            {activeTab === "overview" && <OverviewTab leads={leads} getStatusMeta={getStatusMeta} t={t} />}
-            {activeTab === "leads" && <LeadsTab leads={leads} isLoading={leadsQuery.isLoading} getStatusMeta={getStatusMeta} t={t} />}
+            {activeTab === "overview" && <OverviewTab leads={leads} t={t} />}
+            {activeTab === "leads" && <LeadsTab leads={leads} isLoading={leadsQuery.isLoading} t={t} />}
             {activeTab === "notifications" && <NotificationsTab t={t} />}
             {activeTab === "saved" && <SavedTab t={t} />}
             {activeTab === "security" && <SecurityTab user={user} refetch={refetch} t={t} />}
@@ -143,9 +166,14 @@ export default function Cabinet() {
   );
 }
 
-function OverviewTab({ leads, getStatusMeta, t }: any) {
-  const inProgress = leads.filter((l: any) => l.status === "in_progress").length;
-  const done = leads.filter((l: any) => l.status === "done").length;
+interface TabProps {
+  leads: Lead[];
+  t: TFunction;
+}
+
+function OverviewTab({ leads, t }: TabProps) {
+  const inProgress = leads.filter(l => l.status === "in_progress").length;
+  const done = leads.filter(l => l.status === "done").length;
 
   return (
     <div>
@@ -174,20 +202,22 @@ function OverviewTab({ leads, getStatusMeta, t }: any) {
           <p className="text-muted-foreground text-sm text-center py-8">{t("auth.cabinet.leads.empty")}</p>
         ) : (
           <div className="space-y-3">
-            {leads.slice(0, 5).map((lead: any) => {
-              const st = getStatusMeta(lead.status);
+            {leads.slice(0, 5).map(lead => {
+              const st = getStatusMeta(lead.status, t);
               return (
                 <div key={lead.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                     <FileText className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground text-sm">{lead.service || lead.message?.slice(0, 30)}</p>
+                    <p className="font-semibold text-foreground text-sm">{lead.service ?? lead.message?.slice(0, 30)}</p>
                     <p className="text-xs text-muted-foreground truncate">{lead.message}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${st.color}`}>{st.label}</span>
-                    <span className="text-xs text-muted-foreground">{lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : ""}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : ""}
+                    </span>
                   </div>
                 </div>
               );
@@ -214,7 +244,13 @@ function OverviewTab({ leads, getStatusMeta, t }: any) {
   );
 }
 
-function LeadsTab({ leads, isLoading, getStatusMeta, t }: any) {
+interface LeadsTabProps {
+  leads: Lead[];
+  isLoading: boolean;
+  t: TFunction;
+}
+
+function LeadsTab({ leads, isLoading, t }: LeadsTabProps) {
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
       <div className="p-6 border-b border-border flex items-center justify-between">
@@ -238,15 +274,15 @@ function LeadsTab({ leads, isLoading, getStatusMeta, t }: any) {
         </div>
       ) : (
         <div className="divide-y divide-border">
-          {leads.map((lead: any) => {
-            const st = getStatusMeta(lead.status);
+          {leads.map(lead => {
+            const st = getStatusMeta(lead.status, t);
             return (
               <div key={lead.id} className="p-6 flex items-center gap-4 hover:bg-muted/30 transition-colors">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                   <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground">{lead.service || "—"}</p>
+                  <p className="font-bold text-foreground">{lead.service ?? "—"}</p>
                   <p className="text-sm text-muted-foreground mt-0.5">{lead.message}</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : ""}
@@ -262,8 +298,20 @@ function LeadsTab({ leads, isLoading, getStatusMeta, t }: any) {
   );
 }
 
-function NotificationsTab({ t }: { t: any }) {
-  const mockNotifications = [
+interface SimpleTabProps {
+  t: TFunction;
+}
+
+interface MockNotification {
+  id: number;
+  title: string;
+  body: string;
+  date: string;
+  read: boolean;
+}
+
+function NotificationsTab({ t }: SimpleTabProps) {
+  const mockNotifications: MockNotification[] = [
     { id: 1, title: "Arizangiz qabul qilindi", body: "SMM boshqaruv arizangiz muvaffaqiyatli qabul qilindi. Tez orada siz bilan bog'lanamiz.", date: "2026-03-24", read: false },
     { id: 2, title: "Yangi blog maqolasi", body: "Instagram marketing bo'yicha yangi maqola e'lon qilindi.", date: "2026-03-22", read: true },
   ];
@@ -301,7 +349,7 @@ function NotificationsTab({ t }: { t: any }) {
   );
 }
 
-function SavedTab({ t }: { t: any }) {
+function SavedTab({ t }: SimpleTabProps) {
   return (
     <div className="bg-card border border-border rounded-2xl p-8">
       <div className="text-center py-8">
@@ -315,16 +363,42 @@ function SavedTab({ t }: { t: any }) {
   );
 }
 
-function SecurityTab({ user, refetch, t }: any) {
-  const [profileForm, setProfileForm] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
-    company: user?.company || "",
+interface SecurityTabProps {
+  user: CabinetUser | null;
+  refetch: () => void;
+  t: TFunction;
+}
+
+interface ProfileFormState {
+  name: string;
+  phone: string;
+  company: string;
+}
+
+interface PwFormState {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+interface ShowPwState {
+  current: boolean;
+  new: boolean;
+  confirm: boolean;
+}
+
+type ShowPwKey = keyof ShowPwState;
+
+function SecurityTab({ user, refetch, t }: SecurityTabProps) {
+  const [profileForm, setProfileForm] = useState<ProfileFormState>({
+    name: user?.name ?? "",
+    phone: user?.phone ?? "",
+    company: user?.company ?? "",
   });
   const [profileSaved, setProfileSaved] = useState(false);
 
-  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
-  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [pwForm, setPwForm] = useState<PwFormState>({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [showPw, setShowPw] = useState<ShowPwState>({ current: false, new: false, confirm: false });
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState(false);
 
@@ -345,8 +419,8 @@ function SecurityTab({ user, refetch, t }: any) {
         setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
         setTimeout(() => setPwSuccess(false), 3000);
       },
-      onError: (err: any) => {
-        setPwError(err?.response?.data?.error || t("common.error"));
+      onError: (err: { response?: { data?: { error?: string } } }) => {
+        setPwError(err?.response?.data?.error ?? t("common.error"));
       },
     },
   });
@@ -373,6 +447,12 @@ function SecurityTab({ user, refetch, t }: any) {
     });
   };
 
+  const passwordFields: Array<{ key: keyof PwFormState; label: string; toggleKey: ShowPwKey }> = [
+    { key: "currentPassword", label: t("auth.cabinet.security.currentPassword"), toggleKey: "current" },
+    { key: "newPassword", label: t("auth.cabinet.security.newPassword"), toggleKey: "new" },
+    { key: "confirmPassword", label: t("auth.cabinet.security.confirmPassword"), toggleKey: "confirm" },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Profile section */}
@@ -395,7 +475,7 @@ function SecurityTab({ user, refetch, t }: any) {
             <label className="block text-sm font-semibold text-foreground mb-2">{t("auth.cabinet.profile.email")}</label>
             <input
               type="email"
-              value={user?.email || ""}
+              value={user?.email ?? ""}
               disabled
               className="w-full px-4 py-3 border border-border rounded-xl bg-muted text-muted-foreground text-sm cursor-not-allowed"
             />
@@ -453,16 +533,12 @@ function SecurityTab({ user, refetch, t }: any) {
           </div>
         )}
         <div className="space-y-4 max-w-lg">
-          {[
-            { key: "currentPassword" as const, label: t("auth.cabinet.security.currentPassword"), show: showPw.current, toggleKey: "current" as const },
-            { key: "newPassword" as const, label: t("auth.cabinet.security.newPassword"), show: showPw.new, toggleKey: "new" as const },
-            { key: "confirmPassword" as const, label: t("auth.cabinet.security.confirmPassword"), show: showPw.confirm, toggleKey: "confirm" as const },
-          ].map(field => (
+          {passwordFields.map(field => (
             <div key={field.key}>
               <label className="block text-sm font-semibold text-foreground mb-2">{field.label}</label>
               <div className="relative">
                 <input
-                  type={field.show ? "text" : "password"}
+                  type={showPw[field.toggleKey] ? "text" : "password"}
                   value={pwForm[field.key]}
                   onChange={e => setPwForm(p => ({ ...p, [field.key]: e.target.value }))}
                   placeholder="••••••••"
@@ -473,7 +549,7 @@ function SecurityTab({ user, refetch, t }: any) {
                   onClick={() => setShowPw(p => ({ ...p, [field.toggleKey]: !p[field.toggleKey] }))}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {field.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPw[field.toggleKey] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>

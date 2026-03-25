@@ -2,7 +2,12 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useForgotPassword } from "@workspace/api-client-react";
+import type { ErrorType } from "@workspace/api-client-react";
 import { Loader2, Mail, CheckCircle2 } from "lucide-react";
+
+interface ApiErrorData {
+  error?: string;
+}
 
 export default function ForgotPassword() {
   const { t } = useTranslation();
@@ -10,13 +15,13 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const forgotMutation = useForgotPassword({
+  const forgotMutation = useForgotPassword<ErrorType<ApiErrorData>>({
     mutation: {
       onSuccess: () => {
         setSuccess(true);
       },
-      onError: (err: any) => {
-        setError(err?.response?.data?.error || t("common.error"));
+      onError: (err: ErrorType<ApiErrorData>) => {
+        setError(err?.data?.error ?? t("common.error"));
       },
     },
   });

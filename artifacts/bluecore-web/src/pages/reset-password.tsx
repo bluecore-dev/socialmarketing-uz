@@ -2,7 +2,12 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useResetPassword } from "@workspace/api-client-react";
+import type { ErrorType } from "@workspace/api-client-react";
 import { Eye, EyeOff, Loader2, Lock, CheckCircle2 } from "lucide-react";
+
+interface ApiErrorData {
+  error?: string;
+}
 
 export default function ResetPassword() {
   const { t } = useTranslation();
@@ -17,13 +22,13 @@ export default function ResetPassword() {
   const params = new URLSearchParams(location.includes("?") ? location.split("?")[1] : "");
   const token = params.get("token") || new URLSearchParams(window.location.search).get("token") || "";
 
-  const resetMutation = useResetPassword({
+  const resetMutation = useResetPassword<ErrorType<ApiErrorData>>({
     mutation: {
       onSuccess: () => {
         setSuccess(true);
       },
-      onError: (err: any) => {
-        setError(err?.response?.data?.error || t("auth.resetPassword.invalidToken"));
+      onError: (err: ErrorType<ApiErrorData>) => {
+        setError(err?.data?.error ?? t("auth.resetPassword.invalidToken"));
       },
     },
   });

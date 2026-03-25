@@ -2,8 +2,14 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useLogin } from "@workspace/api-client-react";
+import type { AuthResponse } from "@workspace/api-client-react";
+import type { ErrorType } from "@workspace/api-client-react";
 import { useAuth, storeToken } from "@/lib/auth-context";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+
+interface ApiErrorData {
+  error?: string;
+}
 
 export default function Login() {
   const { t } = useTranslation();
@@ -16,17 +22,17 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
-  const loginMutation = useLogin({
+  const loginMutation = useLogin<ErrorType<ApiErrorData>>({
     mutation: {
-      onSuccess: (data: any) => {
+      onSuccess: (data: AuthResponse) => {
         if (data?.accessToken) {
           storeToken(data.accessToken, rememberMe);
         }
         refetch();
         setLocation("/cabinet");
       },
-      onError: (err: any) => {
-        setError(err?.response?.data?.error || t("auth.login.errorInvalid"));
+      onError: (err: ErrorType<ApiErrorData>) => {
+        setError(err?.data?.error ?? t("auth.login.errorInvalid"));
       },
     },
   });
