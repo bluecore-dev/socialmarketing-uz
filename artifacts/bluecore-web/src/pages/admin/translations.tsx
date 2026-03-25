@@ -90,11 +90,13 @@ export default function AdminTranslations() {
 
   if (user?.role !== "admin") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-gray-400">
-        <ShieldOff className="w-12 h-12 text-red-400" />
-        <p className="text-lg font-medium">Bu sahifaga kirish taqiqlangan</p>
-        <p className="text-sm">Faqat administrator ushbu sahifani ko'ra oladi.</p>
-      </div>
+      <AdminLayout>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-gray-400">
+          <ShieldOff className="w-12 h-12 text-red-400" />
+          <p className="text-lg font-medium">Bu sahifaga kirish taqiqlangan</p>
+          <p className="text-sm">Faqat administrator ushbu sahifani ko'ra oladi.</p>
+        </div>
+      </AdminLayout>
     );
   }
 
