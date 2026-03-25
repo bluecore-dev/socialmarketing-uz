@@ -10,7 +10,8 @@ import {
 import type { Notification, NotificationInput } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetNotificationsQueryKey } from "@workspace/api-client-react";
-import { Bell, Send, Trash2, Check, CheckCheck, Loader2, X, User, Globe } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { Bell, Send, Trash2, Check, CheckCheck, Loader2, X, User, Globe, ShieldOff } from "lucide-react";
 
 const TYPE_OPTIONS = [
   { value: "info", label: "Ma'lumot" },
@@ -29,6 +30,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function AdminNotifications() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<NotificationInput>({
@@ -89,6 +91,16 @@ export default function AdminNotifications() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  if (user?.role !== "admin") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-gray-400">
+        <ShieldOff className="w-12 h-12 text-red-400" />
+        <p className="text-lg font-medium">Bu sahifaga kirish taqiqlangan</p>
+        <p className="text-sm">Faqat administrator ushbu sahifani ko'ra oladi.</p>
+      </div>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -106,7 +118,7 @@ export default function AdminNotifications() {
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
               <button
-                onClick={() => markAllMutation.mutate(undefined as unknown as void)}
+                onClick={() => markAllMutation.mutate()}
                 disabled={markAllMutation.isPending}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 transition-all"
               >

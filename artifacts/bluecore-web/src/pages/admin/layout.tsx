@@ -17,8 +17,8 @@ const navItems = [
   { href: "/admin/services", label: "Xizmatlar", icon: Package },
   { href: "/admin/users", label: "Foydalanuvchilar", icon: Users },
   { href: "/admin/banners", label: "Bannerlar", icon: Image },
-  { href: "/admin/notifications", label: "Xabarnomalar", icon: Bell },
-  { href: "/admin/translations", label: "Tarjimalar", icon: Globe },
+  { href: "/admin/notifications", label: "Xabarnomalar", icon: Bell, adminOnly: true },
+  { href: "/admin/translations", label: "Tarjimalar", icon: Globe, adminOnly: true },
 ];
 
 interface AdminLayoutProps {
@@ -94,7 +94,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {navItems.map(item => (
+        {navItems.filter(item => !item.adminOnly || user?.role === "admin").map(item => (
           <Link
             key={item.href}
             href={item.href}

@@ -7,11 +7,13 @@ import {
 } from "@workspace/api-client-react";
 import type { Translation } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Globe, Search, Plus, Save, Loader2, Check, Filter } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { Globe, Search, Plus, Save, Loader2, Check, Filter, ShieldOff } from "lucide-react";
 
 const NAMESPACES = ["common", "home", "auth", "services", "blog", "cases", "about", "contact"];
 
 export default function AdminTranslations() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [nsFilter, setNsFilter] = useState("");
@@ -85,6 +87,16 @@ export default function AdminTranslations() {
   };
 
   const uniqueNamespaces = Array.from(new Set(translations.map(t => t.namespace)));
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-gray-400">
+        <ShieldOff className="w-12 h-12 text-red-400" />
+        <p className="text-lg font-medium">Bu sahifaga kirish taqiqlangan</p>
+        <p className="text-sm">Faqat administrator ushbu sahifani ko'ra oladi.</p>
+      </div>
+    );
+  }
 
   return (
     <AdminLayout>
