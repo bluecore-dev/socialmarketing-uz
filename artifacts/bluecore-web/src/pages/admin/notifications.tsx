@@ -107,7 +107,11 @@ export default function AdminNotifications() {
               Xabarnomalar
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              {totalCount > 0 ? `Jami ${totalCount} ta xabarnoma` : "Xabarnomalar yo'q"}
+              {notifQuery.isFetching
+                ? "Yuklanmoqda..."
+                : totalCount > 0
+                  ? `${page}-sahifada ${totalCount} ta xabarnoma`
+                  : "Xabarnomalar yo'q"}
             </p>
           </div>
           <div className="flex items-center gap-2">
