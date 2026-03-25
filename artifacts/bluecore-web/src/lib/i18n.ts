@@ -157,6 +157,8 @@ const resources = {
           filterBy: "Filtr",
           noResults: "Natijalar topilmadi",
           metrics: "Natijalari",
+          before: "Oldin",
+          after: "Keyin",
         },
         about: {
           title: "Biz haqimizda",
@@ -220,6 +222,9 @@ const resources = {
           title: "Sahifa topilmadi",
           subtitle: "Kechirasiz, siz qidirgan sahifa mavjud emas.",
           back: "Bosh sahifaga qaytish",
+          message: "Siz qidirayotgan sahifa mavjud emas yoki ko'chirilgan.",
+          goHome: "Bosh sahifaga qaytish",
+          goBack: "Orqaga qaytish",
         },
       },
     }
@@ -378,6 +383,8 @@ const resources = {
           filterBy: "Фильтр",
           noResults: "Результаты не найдены",
           metrics: "Результаты",
+          before: "До",
+          after: "После",
         },
         about: {
           title: "О нас",
@@ -441,6 +448,9 @@ const resources = {
           title: "Страница не найдена",
           subtitle: "Извините, запрашиваемая страница не существует.",
           back: "На главную",
+          message: "Страница, которую вы ищете, не существует или была перемещена.",
+          goHome: "На главную",
+          goBack: "Назад",
         },
       },
     }
@@ -599,6 +609,8 @@ const resources = {
           filterBy: "Filter",
           noResults: "No results found",
           metrics: "Results",
+          before: "Before",
+          after: "After",
         },
         about: {
           title: "About Us",
@@ -662,6 +674,9 @@ const resources = {
           title: "Page Not Found",
           subtitle: "Sorry, the page you are looking for does not exist.",
           back: "Back to Home",
+          message: "The page you are looking for does not exist or has been moved.",
+          goHome: "Go to Home",
+          goBack: "Go Back",
         },
       },
     }

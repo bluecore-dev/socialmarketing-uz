@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useGetCaseStudies } from "@workspace/api-client-react";
-import { ArrowUpRight, Filter } from "lucide-react";
+import { ArrowUpRight, Filter, TrendingUp, TrendingDown } from "lucide-react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,10 +31,96 @@ interface CaseStudy {
   content?: CaseStudyContent;
 }
 
+const BEFORE_AFTER_IMAGES = [
+  {
+    before: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=600&q=80",
+    after: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&q=80",
+  },
+  {
+    before: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80",
+    after: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80",
+  },
+  {
+    before: "https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=600&q=80",
+    after: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=600&q=80",
+  },
+];
+
 function getLocalizedContent(content: CaseStudyContent | undefined, lang: string): LocalizedContent {
   if (!content) return { title: "", description: "" };
   const obj = content[lang] ?? content["uz"] ?? content["en"] ?? content["ru"];
   return { title: obj?.title || "", description: obj?.description || "" };
+}
+
+function BeforeAfterCard({ cs, idx, lang }: { cs: CaseStudy; idx: number; lang: string }) {
+  const { t } = useTranslation();
+  const lc = getLocalizedContent(cs.content, lang);
+  const imgs = BEFORE_AFTER_IMAGES[idx % BEFORE_AFTER_IMAGES.length];
+
+  const metricEntries = cs.metrics ? Object.entries(cs.metrics) : [];
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 24 }}
+      transition={{ duration: 0.35 }}
+      className="bg-card rounded-3xl overflow-hidden border border-border shadow-lg flex flex-col"
+    >
+      {/* Client + platform badge */}
+      <div className="px-6 pt-6 pb-4 flex items-center justify-between">
+        <h3 className="text-xl font-bold text-foreground">{cs.client}</h3>
+        <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider rounded-full">
+          {cs.industry || cs.platform || "SMM"}
+        </span>
+      </div>
+
+      {/* Before / After images */}
+      <div className="grid grid-cols-2 gap-2 mx-6 mb-4 rounded-2xl overflow-hidden">
+        <div className="relative">
+          <div className="absolute top-2 left-2 z-10 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1">
+            <TrendingDown className="w-3 h-3 text-red-400" />
+            {t('pages.cases.before', 'Oldin')}
+          </div>
+          <img src={imgs.before} alt="before" className="w-full aspect-[4/3] object-cover" />
+        </div>
+        <div className="relative">
+          <div className="absolute top-2 left-2 z-10 bg-primary/90 text-white text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1">
+            <TrendingUp className="w-3 h-3 text-green-300" />
+            {t('pages.cases.after', 'Keyin')}
+          </div>
+          <img src={imgs.after} alt="after" className="w-full aspect-[4/3] object-cover" />
+        </div>
+      </div>
+
+      <div className="px-6 pb-6 flex-1 flex flex-col">
+        {lc.description && (
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{lc.description}</p>
+        )}
+
+        {/* Metrics */}
+        {metricEntries.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 mb-5 py-4 border-y border-border">
+            {metricEntries.slice(0, 4).map(([key, val]) => (
+              <div key={key} className="flex flex-col">
+                <span className="text-2xl font-black text-primary">{String(val)}</span>
+                <span className="text-xs text-muted-foreground uppercase font-medium tracking-wide">{key}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Link
+          href={`/cases/${cs.slug}`}
+          className="flex items-center justify-between w-full py-3 px-4 bg-muted text-foreground font-semibold rounded-xl hover:bg-primary hover:text-white transition-colors mt-auto"
+        >
+          <span>{t('common.readMore')}</span>
+          <ArrowUpRight className="w-5 h-5" />
+        </Link>
+      </div>
+    </motion.div>
+  );
 }
 
 export default function Cases() {
@@ -74,58 +160,19 @@ export default function Cases() {
           ))}
         </div>
 
+        {casesQuery.isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-card rounded-3xl border border-border h-96 animate-pulse" />
+            ))}
+          </div>
+        )}
+
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
-            {filteredCases.map(cs => {
-              const lc = getLocalizedContent(cs.content, i18n.language);
-              return (
-                <motion.div
-                  key={cs.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  className="group bg-card rounded-3xl overflow-hidden shadow-lg border border-border flex flex-col"
-                >
-                  <div className="aspect-[4/3] relative overflow-hidden bg-muted">
-                    <img
-                      src={`https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80&sig=${cs.id}`}
-                      alt={cs.client}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-white/90 backdrop-blur text-primary text-xs font-bold uppercase tracking-wider rounded-full shadow-sm">
-                        {cs.industry || cs.platform || "SMM"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="text-2xl font-bold text-foreground mb-3">{cs.client}</h3>
-                    <p className="text-muted-foreground line-clamp-2 mb-6 flex-1">
-                      {lc.description}
-                    </p>
-
-                    {cs.metrics && Object.keys(cs.metrics).length > 0 && (
-                      <div className="grid grid-cols-2 gap-4 mb-6 py-4 border-y border-border">
-                        {Object.entries(cs.metrics).slice(0, 2).map(([key, val]) => (
-                          <div key={key}>
-                            <div className="text-xl font-black text-primary">{String(val)}</div>
-                            <div className="text-xs text-muted-foreground uppercase">{key}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <Link href={`/cases/${cs.slug}`} className="flex items-center justify-between w-full py-3 px-4 bg-muted text-foreground font-semibold rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                      <span>{t('common.readMore')}</span>
-                      <ArrowUpRight className="w-5 h-5" />
-                    </Link>
-                  </div>
-                </motion.div>
-              );
-            })}
+            {filteredCases.map((cs, idx) => (
+              <BeforeAfterCard key={cs.id} cs={cs} idx={idx} lang={i18n.language} />
+            ))}
           </AnimatePresence>
         </motion.div>
 
