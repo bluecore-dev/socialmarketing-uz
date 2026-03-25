@@ -15,6 +15,15 @@ const resources = {
         cabinet: "Kabinet",
         login: "Kirish",
         logout: "Chiqish",
+        viewAll: "Barchasini ko'rish",
+        megaMenu: {
+          instagram: "Instagram Marketing",
+          youtube: "YouTube Promotion",
+          facebook: "Facebook & Meta Reklamasi",
+          targeting: "Targeting va Tahlil",
+          strategy: "SMM Strategiya",
+          content: "Kontent Ishlab Chiqarish",
+        },
       },
       hero: {
         badge: "O'zbekistondagi yetakchi SMM agentlik",
@@ -241,6 +250,15 @@ const resources = {
         cabinet: "Кабинет",
         login: "Войти",
         logout: "Выйти",
+        viewAll: "Смотреть все",
+        megaMenu: {
+          instagram: "Instagram Маркетинг",
+          youtube: "YouTube Продвижение",
+          facebook: "Facebook & Meta Реклама",
+          targeting: "Таргетинг и Аналитика",
+          strategy: "SMM Стратегия",
+          content: "Производство Контента",
+        },
       },
       hero: {
         badge: "Ведущее SMM-агентство в Узбекистане",
@@ -467,6 +485,15 @@ const resources = {
         cabinet: "Cabinet",
         login: "Log In",
         logout: "Log Out",
+        viewAll: "View All",
+        megaMenu: {
+          instagram: "Instagram Marketing",
+          youtube: "YouTube Promotion",
+          facebook: "Facebook & Meta Ads",
+          targeting: "Targeting & Analytics",
+          strategy: "SMM Strategy",
+          content: "Content Production",
+        },
       },
       hero: {
         badge: "Leading SMM Agency in Uzbekistan",

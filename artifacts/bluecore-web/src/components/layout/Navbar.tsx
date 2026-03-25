@@ -47,12 +47,12 @@ export function Navbar() {
   };
 
   const serviceItems = [
-    { icon: Instagram, href: "/services#instagram", label: "Instagram Marketing" },
-    { icon: Youtube, href: "/services#youtube", label: "YouTube Promotion" },
-    { icon: Facebook, href: "/services#facebook", label: "Facebook & Meta Ads" },
-    { icon: BarChart2, href: "/services#targeting", label: "Targeting & Analytics" },
-    { icon: Lightbulb, href: "/services#strategy", label: "SMM Strategy" },
-    { icon: Film, href: "/services#content", label: "Content Production" },
+    { icon: Instagram, href: "/services#instagram", label: t('nav.megaMenu.instagram') },
+    { icon: Youtube, href: "/services#youtube", label: t('nav.megaMenu.youtube') },
+    { icon: Facebook, href: "/services#facebook", label: t('nav.megaMenu.facebook') },
+    { icon: BarChart2, href: "/services#targeting", label: t('nav.megaMenu.targeting') },
+    { icon: Lightbulb, href: "/services#strategy", label: t('nav.megaMenu.strategy') },
+    { icon: Film, href: "/services#content", label: t('nav.megaMenu.content') },
   ];
 
   const navLinks = [
@@ -166,7 +166,7 @@ export function Navbar() {
                               onClick={() => setServicesOpen(false)}
                               className="flex items-center justify-between w-full px-3 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:bg-primary/90 transition-colors"
                             >
-                              <span>{t('common.viewAll', 'Barchasini ko\'rish')}</span>
+                              <span>{t('nav.viewAll')}</span>
                               <ChevronRight className="w-4 h-4" />
                             </Link>
                           </div>
