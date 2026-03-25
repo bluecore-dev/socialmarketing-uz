@@ -6,9 +6,19 @@ import { requireAuth, requireRole, AuthRequest } from "../middleware/auth.js";
 
 const router = Router();
 
+router.get("/admin/all", requireAuth, requireRole("admin"), async (req: AuthRequest, res) => {
+  try {
+    const rows = await db.select().from(translationsTable).orderBy(translationsTable.namespace, translationsTable.key);
+    res.json(rows);
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server xatosi" });
+  }
+});
+
 router.get("/:lang/:namespace", async (req, res) => {
   try {
-    const { lang, namespace } = req.params;
+    const { lang, namespace } = req.params as { lang: string; namespace: string };
     const rows = await db.select().from(translationsTable)
       .where(eq(translationsTable.namespace, namespace));
     const result: Record<string, string> = {};
@@ -16,16 +26,6 @@ router.get("/:lang/:namespace", async (req, res) => {
       result[row.key] = (lang === "ru" ? row.ru : lang === "en" ? row.en : row.uz) || row.key;
     }
     res.json(result);
-  } catch (err) {
-    req.log.error(err);
-    res.status(500).json({ error: "Server xatosi" });
-  }
-});
-
-router.get("/admin/all", requireAuth, requireRole("admin"), async (req: AuthRequest, res) => {
-  try {
-    const rows = await db.select().from(translationsTable).orderBy(translationsTable.namespace, translationsTable.key);
-    res.json(rows);
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server xatosi" });
