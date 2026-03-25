@@ -11,6 +11,9 @@ interface ApiErrorData {
   error?: string;
 }
 
+const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"] as const;
+const STRENGTH_COLORS = ["bg-red-400", "bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-blue-400", "bg-green-500"] as const;
+
 function getPasswordStrength(password: string): { score: number; label: string } {
   let score = 0;
   if (password.length >= 8) score++;
@@ -18,10 +21,8 @@ function getPasswordStrength(password: string): { score: number; label: string }
   if (/[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
-  return { score, label: "" };
+  return { score, label: STRENGTH_LABELS[score] };
 }
-
-const strengthColors = ["bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-blue-400", "bg-green-500"];
 
 export default function Register() {
   const { t } = useTranslation();
@@ -65,10 +66,11 @@ export default function Register() {
   const { score } = getPasswordStrength(form.password);
 
   const strengthLabels = [
-    t("auth.register.passwordStrengthWeak"),
+    "",
     t("auth.register.passwordStrengthWeak"),
     t("auth.register.passwordStrengthFair"),
     t("auth.register.passwordStrengthGood"),
+    t("auth.register.passwordStrengthStrong"),
     t("auth.register.passwordStrengthStrong"),
   ];
 
@@ -237,7 +239,7 @@ export default function Register() {
                       <div
                         key={i}
                         className={`flex-1 rounded-full transition-all duration-300 ${
-                          i < score ? strengthColors[score - 1] : "bg-muted"
+                          i < score ? STRENGTH_COLORS[score] : "bg-muted"
                         }`}
                       />
                     ))}

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { useState } from "react";
+import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
@@ -55,15 +55,8 @@ function getStatusMeta(status: string, t: TFunction): StatusMeta {
 
 export default function Cabinet() {
   const { t } = useTranslation();
-  const [, setLocation] = useLocation();
-  const { user, isLoading, isAuthenticated, refetch } = useAuth();
+  const { user, isLoading, refetch } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [isLoading, isAuthenticated, setLocation]);
 
   const logoutMutation = useLogout({
     mutation: {
@@ -95,10 +88,6 @@ export default function Cabinet() {
         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

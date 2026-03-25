@@ -1,5 +1,9 @@
-import { createContext, useContext, ReactNode } from "react";
-import { useGetMe, setAuthTokenGetter, getGetMeQueryKey } from "@workspace/api-client-react";
+import { createContext, useContext, ReactNode, useCallback, useEffect, useRef } from "react";
+import { useGetMe, setAuthTokenGetter, getGetMeQueryKey, refreshToken } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getStoredToken, storeToken } from "@/lib/auth-tokens";
+
+export { getStoredToken, storeToken, clearStoredToken } from "@/lib/auth-tokens";
 
 interface User {
   id: number;
@@ -25,37 +29,12 @@ const AuthContext = createContext<AuthContextType>({
   refetch: () => {},
 });
 
-const TOKEN_KEY = "bluecore_access_token";
-
-export function getStoredToken(): string | null {
-  try {
-    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-export function storeToken(token: string, persist = false): void {
-  try {
-    sessionStorage.setItem(TOKEN_KEY, token);
-    if (persist) {
-      localStorage.setItem(TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  } catch {}
-}
-
-export function clearStoredToken(): void {
-  try {
-    sessionStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-  } catch {}
-}
-
 setAuthTokenGetter(() => getStoredToken());
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
+  const refreshAttemptedRef = useRef(false);
+
   const meQuery = useGetMe({
     query: {
       queryKey: getGetMeQueryKey(),
@@ -63,6 +42,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       staleTime: 5 * 60 * 1000,
     },
   });
+
+  useEffect(() => {
+    if (
+      !refreshAttemptedRef.current &&
+      !meQuery.isLoading &&
+      !meQuery.data &&
+      !getStoredToken()
+    ) {
+      refreshAttemptedRef.current = true;
+      (async () => {
+        try {
+          const result = await refreshToken();
+          if (result?.accessToken) {
+            const persist = !!localStorage.getItem("bluecore_access_token");
+            storeToken(result.accessToken, persist);
+            await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+          }
+        } catch {
+        }
+      })();
+    }
+  }, [meQuery.isLoading, meQuery.data, queryClient]);
+
+  const refetch = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+  }, [queryClient]);
 
   const user = meQuery.data as User | null | undefined;
 
@@ -72,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user || null,
         isLoading: meQuery.isLoading,
         isAuthenticated: !!user,
-        refetch: meQuery.refetch,
+        refetch,
       }}
     >
       {children}

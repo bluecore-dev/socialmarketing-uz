@@ -7,6 +7,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingElements } from "@/components/layout/FloatingElements";
 import { AuthProvider } from "@/lib/auth-context";
+import { PrivateRoute } from "@/components/PrivateRoute";
 import { AnimatePresence, motion } from "framer-motion";
 import "@/lib/i18n";
 
@@ -105,7 +106,11 @@ function PublicRoutes() {
                 {() => <PageWrapper><Contact /></PageWrapper>}
               </Route>
               <Route path="/cabinet">
-                {() => <PageWrapper><Cabinet /></PageWrapper>}
+                {() => (
+                  <PageWrapper>
+                    <PrivateRoute><Cabinet /></PrivateRoute>
+                  </PageWrapper>
+                )}
               </Route>
               <Route>
                 {() => <PageWrapper><NotFound /></PageWrapper>}
