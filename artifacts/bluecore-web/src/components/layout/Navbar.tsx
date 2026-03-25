@@ -124,13 +124,14 @@ export function Navbar() {
             <motion.div
               whileHover={{ scale: 1.05, rotate: -3 }}
               transition={{ duration: 0.2 }}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg"
+              className="h-9 w-auto flex items-center justify-center"
             >
-              B
+              <img
+                src={`${import.meta.env.BASE_URL}images/bluecore-logo.png`}
+                alt="BlueCore"
+                className="h-9 w-auto object-contain"
+              />
             </motion.div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
-              BlueCore<span className="text-accent">.</span>
-            </span>
           </Link>
 
           {/* Desktop Nav */}
@@ -291,9 +292,14 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                 }
               }}
-              className="fixed inset-0 bg-background z-40 md:hidden flex flex-col pt-24 px-8 pb-10 overflow-y-auto"
+              className="fixed inset-0 z-40 md:hidden flex flex-col pt-24 px-8 pb-10 overflow-y-auto mobile-menu-luxury"
             >
-              <ul className="flex flex-col gap-2 mb-8">
+              {/* Luxury background gradients */}
+              <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/10 pointer-events-none" />
+              <div className="absolute top-0 right-0 w-72 h-72 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-1/3 left-0 w-56 h-56 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
+
+              <ul className="flex flex-col gap-1 mb-8 relative z-10">
                 {navLinks.map((link, i) => (
                   <motion.li
                     key={link.href}
@@ -309,13 +315,17 @@ export function Navbar() {
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
-                        "block w-full text-3xl font-bold py-3 border-b border-border/50 transition-colors",
+                        "group block w-full text-3xl font-bold py-4 px-4 rounded-2xl transition-all duration-300 flex items-center justify-between",
                         location === link.href || (link.hasMega && location.startsWith("/services"))
-                          ? "text-primary"
-                          : "text-foreground hover:text-primary"
+                          ? "text-primary bg-primary/10 border border-primary/20"
+                          : "text-foreground hover:text-primary hover:bg-white/5"
                       )}
                     >
-                      {link.label}
+                      <span>{link.label}</span>
+                      <ChevronRight className={cn(
+                        "w-5 h-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300",
+                        (location === link.href || (link.hasMega && location.startsWith("/services"))) && "opacity-100"
+                      )} />
                     </Link>
                   </motion.li>
                 ))}
@@ -327,9 +337,10 @@ export function Navbar() {
                   <Link
                     href="/contact"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full text-3xl font-bold py-3 text-accent border-b border-border/50 hover:text-accent/80 transition-colors"
+                    className="group block w-full text-3xl font-bold py-4 px-4 rounded-2xl text-accent hover:bg-accent/10 hover:text-accent transition-all duration-300 flex items-center justify-between"
                   >
-                    {t('nav.contact')}
+                    <span>{t('nav.contact')}</span>
+                    <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                   </Link>
                 </motion.li>
               </ul>
@@ -338,19 +349,19 @@ export function Navbar() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.55, duration: 0.4 }}
-                className="mt-auto space-y-6"
+                className="mt-auto space-y-4 relative z-10"
               >
                 <Link
                   href="/contact"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full py-4 bg-primary text-primary-foreground text-center font-bold rounded-2xl text-lg shimmer-btn"
+                  className="block w-full py-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-center font-bold rounded-2xl text-lg shimmer-btn shadow-lg shadow-primary/30 glow-border"
                 >
                   {t('hero.cta1')}
                 </Link>
 
-                <div>
-                  <p className="text-sm text-muted-foreground mb-3 font-mono uppercase tracking-wider">Til / Язык / Language</p>
-                  <div className="flex gap-3">
+                <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
+                  <p className="text-xs text-muted-foreground mb-3 font-mono uppercase tracking-wider">Til / Язык / Language</p>
+                  <div className="flex gap-2">
                     {['uz', 'ru', 'en'].map((lang) => (
                       <button
                         key={lang}
@@ -361,8 +372,8 @@ export function Navbar() {
                         className={cn(
                           "px-4 py-3 rounded-xl font-bold uppercase flex-1 border transition-all text-sm touch-target",
                           i18n.language.startsWith(lang)
-                            ? "bg-primary text-primary-foreground border-primary shadow-md"
-                            : "bg-muted text-muted-foreground border-border"
+                            ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                            : "bg-background/50 text-muted-foreground border-border/50 hover:border-primary/30"
                         )}
                       >
                         {lang}

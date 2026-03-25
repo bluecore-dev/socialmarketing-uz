@@ -50,17 +50,11 @@ export function PageLoader() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
             className="flex flex-col items-center gap-4"
           >
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-4xl shadow-2xl">
-              B
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-2xl font-bold tracking-tight text-foreground">
-                BlueCore<span className="text-accent">.</span>
-              </span>
-              <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.3em]">
-                SMM Agency
-              </span>
-            </div>
+            <img
+              src={`${import.meta.env.BASE_URL}images/bluecore-logo.png`}
+              alt="BlueCore"
+              className="h-16 w-auto object-contain"
+            />
           </motion.div>
 
           <motion.div

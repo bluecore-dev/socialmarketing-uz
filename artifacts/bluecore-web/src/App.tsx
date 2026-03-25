@@ -88,6 +88,9 @@ function LenisProvider() {
     ).matches;
     if (prefersReducedMotion) return;
 
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) return;
+
     let lenis: { raf: (time: number) => void; destroy: () => void } | null = null;
     let rafId: number;
 

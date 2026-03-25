@@ -46,13 +46,13 @@ interface SolutionItem {
 function CounterStat({ end, suffix = "", label, icon: Icon }: { end: number; suffix?: string; label: string; icon: React.ElementType }) {
   const { count, ref } = useCounterAnimation({ end, duration: 2000 });
   return (
-    <div ref={ref as React.RefObject<HTMLDivElement>} className="glass-panel rounded-2xl p-6 flex items-center gap-4 hover:-translate-y-1 transition-transform duration-300">
-      <div className="w-12 h-12 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0">
-        <Icon className="w-6 h-6" />
+    <div ref={ref as React.RefObject<HTMLDivElement>} className="glass-panel rounded-2xl p-5 md:p-6 flex items-center gap-4 hover:-translate-y-1 transition-transform duration-300 border border-white/20">
+      <div className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-accent/20 to-primary/20 text-accent flex items-center justify-center shrink-0 shadow-inner">
+        <Icon className="w-5 h-5 md:w-6 md:h-6" />
       </div>
       <div>
-        <h4 className="text-3xl font-black text-foreground tabular-nums">{count}{suffix}</h4>
-        <p className="text-sm text-muted-foreground font-medium">{label}</p>
+        <h4 className="text-2xl md:text-3xl font-black text-foreground tabular-nums leading-none">{count}{suffix}</h4>
+        <p className="text-xs md:text-sm text-muted-foreground font-medium mt-0.5">{label}</p>
       </div>
     </div>
   );
@@ -224,14 +224,14 @@ function HeroVideoBackground() {
         )}
       </AnimatePresence>
 
-      {shouldUseVideo && !isSlowConnection ? (
+      {shouldUseVideo && !isSlowConnection && !isMobile ? (
         <video
           ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
-          preload={isMobile ? "none" : "metadata"}
+          preload="metadata"
           onCanPlay={() => setVideoLoaded(true)}
           poster={`${import.meta.env.BASE_URL}images/hero-bg.png`}
           className={cn(
@@ -239,13 +239,6 @@ function HeroVideoBackground() {
             videoLoaded ? "opacity-100" : "opacity-0"
           )}
         >
-          {/* Mobile: 720p equivalent source */}
-          <source
-            src={HERO_VIDEO_MOBILE}
-            type="video/mp4"
-            media="(max-width: 767px)"
-          />
-          {/* Desktop: 1080p equivalent source */}
           <source
             src={HERO_VIDEO_DESKTOP}
             type="video/mp4"
@@ -272,6 +265,7 @@ function ScrollIndicator() {
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
+    if (window.innerWidth < 768) return;
 
     import("gsap").then(({ gsap }) => {
       const tl = gsap.timeline({ delay: 1.3 });
@@ -343,16 +337,22 @@ export default function Home() {
       <section ref={heroRef} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden">
         <HeroVideoBackground />
 
+        {/* Mobile-only luxury gradient overlay */}
+        <div className="absolute inset-0 z-[1] md:hidden mobile-hero-gradient" />
+        {/* Mobile neon accent orbs */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/20 rounded-full blur-[80px] pointer-events-none z-[1] md:hidden" />
+        <div className="absolute bottom-1/3 right-0 w-64 h-64 bg-accent/15 rounded-full blur-[60px] pointer-events-none z-[1] md:hidden" />
+
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
-          className="container mx-auto px-4 md:px-6 relative z-10 py-24 flex flex-col items-center"
+          className="container mx-auto px-4 md:px-6 relative z-10 py-16 md:py-24 flex flex-col items-center"
         >
-          <div className="max-w-4xl mx-auto text-center">
+          <div className="max-w-4xl mx-auto text-center w-full">
             <motion.div
               initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-primary font-semibold mb-8 border border-primary/20"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-primary font-semibold mb-6 md:mb-8 border border-primary/20"
             >
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <span className="font-mono text-xs uppercase tracking-widest">{t('hero.badge')}</span>
@@ -362,10 +362,10 @@ export default function Home() {
               initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
-              className="fluid-text-hero font-display font-bold text-foreground mb-6 leading-[1.05] tracking-tight"
+              className="fluid-text-hero font-display font-bold text-foreground mb-5 md:mb-6 leading-[1.05] tracking-tight"
             >
               {t('hero.title')} <br />
-              <span className="text-gradient glow-text inline-block mt-2">
+              <span className="text-gradient glow-text inline-block mt-2 overflow-visible">
                 {t('hero.titleHighlight')}
               </span>
             </motion.h1>
@@ -374,7 +374,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.5 }}
-              className="fluid-text-lg text-muted-foreground mb-10 max-w-2xl mx-auto"
+              className="fluid-text-lg text-muted-foreground mb-8 md:mb-10 max-w-2xl mx-auto"
             >
               {t('hero.subtitle')}
             </motion.p>
@@ -383,12 +383,12 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.65 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4"
             >
               <div ref={ctaRef1} className="w-full sm:w-auto">
                 <Link
                   href="/contact"
-                  className="shimmer-btn w-full px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50 hover:-translate-y-1 transition-all text-lg flex items-center justify-center gap-2 glow-border"
+                  className="shimmer-btn w-full px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50 hover:-translate-y-1 transition-all text-lg flex items-center justify-center gap-2 glow-border"
                 >
                   {t('hero.cta1')}
                   <ArrowRight className="w-5 h-5" />
@@ -397,7 +397,7 @@ export default function Home() {
               <div ref={ctaRef2} className="w-full sm:w-auto">
                 <Link
                   href="/cases"
-                  className="w-full px-8 py-4 glass-panel font-bold rounded-xl hover:border-primary/50 transition-all text-lg flex items-center justify-center text-foreground"
+                  className="w-full px-8 py-4 glass-panel font-bold rounded-xl hover:border-primary/50 transition-all text-lg flex items-center justify-center text-foreground border"
                 >
                   {t('hero.cta2')}
                 </Link>
@@ -410,7 +410,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.85 }}
-            className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl w-full mx-auto"
+            className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 max-w-4xl w-full mx-auto"
           >
             <CounterStat end={500} suffix="+" label={t('hero.stat1')} icon={TrendingUp} />
             <CounterStat end={98} suffix="%" label={t('hero.stat2')} icon={Users} />
@@ -522,16 +522,16 @@ export default function Home() {
                 return (
                   <motion.div key={service.id} variants={ANIMATION_VARIANTS.staggerItem}>
                     <Link href={`/services#${service.slug}`}>
-                      <div className="group bg-card h-full p-8 rounded-2xl shadow-sm border border-border hover:border-primary/40 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer relative overflow-hidden">
+                      <div className="group bg-card/80 md:bg-card h-full p-6 md:p-8 rounded-2xl shadow-sm border border-border hover:border-primary/40 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer relative overflow-hidden backdrop-blur-sm md:backdrop-blur-none">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-accent/0 group-hover:from-primary/5 group-hover:to-accent/5 transition-all duration-500 rounded-2xl" />
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-150"></div>
 
-                        <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-3xl mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 shadow-sm">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-accent/10 text-primary flex items-center justify-center text-3xl mb-5 md:mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 shadow-sm">
                           {service.icon || '📱'}
                         </div>
-                        <h3 className="text-2xl font-display font-bold text-foreground mb-3">{sc.title}</h3>
-                        <p className="text-muted-foreground line-clamp-3 mb-6">{sc.description}</p>
-                        <div className="flex items-center text-primary font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                        <h3 className="text-xl md:text-2xl font-display font-bold text-foreground mb-2 md:mb-3">{sc.title}</h3>
+                        <p className="text-muted-foreground line-clamp-3 mb-5 md:mb-6 text-sm md:text-base">{sc.description}</p>
+                        <div className="flex items-center text-primary font-semibold group-hover:translate-x-2 transition-transform duration-300 text-sm md:text-base">
                           {t('common.readMore')} <ArrowRight className="ml-2 w-4 h-4" />
                         </div>
                       </div>

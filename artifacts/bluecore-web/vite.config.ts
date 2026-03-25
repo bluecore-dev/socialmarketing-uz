@@ -57,6 +57,19 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom"],
+          "vendor-motion": ["framer-motion"],
+          "vendor-gsap": ["gsap"],
+          "vendor-lenis": ["@studio-freight/lenis"],
+          "vendor-swiper": ["swiper"],
+          "vendor-i18n": ["i18next", "react-i18next"],
+          "vendor-query": ["@tanstack/react-query"],
+        },
+      },
+    },
   },
   server: {
     port,
