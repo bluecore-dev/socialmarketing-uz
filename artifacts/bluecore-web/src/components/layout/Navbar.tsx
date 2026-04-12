@@ -355,7 +355,7 @@ export function Navbar() {
                   s.color
                 )}
               >
-                <s.icon className="w-4.5 h-4.5" />
+                <s.icon className="w-[18px] h-[18px]" />
               </a>
             ))}
             <button
@@ -369,35 +369,38 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu — slide from right */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <>
-              <motion.div
-                key="mobile-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="fixed inset-0 z-[39] md:hidden bg-foreground/20 backdrop-blur-sm"
-                onClick={() => setMobileMenuOpen(false)}
-              />
-              <motion.div
-                key="mobile-menu"
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={{ left: 0, right: 0.2 }}
-                onDragEnd={(_e, info) => {
-                  if (info.offset.x > 80 || info.velocity.x > 300) {
-                    setMobileMenuOpen(false);
-                  }
-                }}
-                className="fixed top-0 right-0 bottom-0 w-[85vw] max-w-[360px] z-40 md:hidden flex flex-col bg-background border-l border-border shadow-2xl overflow-y-auto"
-              >
+      </header>
+
+      {/* Mobile Menu — rendered outside <header> to avoid z-index stacking context bug */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              key="mobile-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[55] md:hidden bg-foreground/20 backdrop-blur-sm"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              key="mobile-menu"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              drag="x"
+              dragDirectionLock
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={{ left: 0, right: 0.2 }}
+              onDragEnd={(_e, info) => {
+                if (info.offset.x > 80 || info.velocity.x > 300) {
+                  setMobileMenuOpen(false);
+                }
+              }}
+              className="fixed top-0 right-0 bottom-0 w-[85vw] max-w-[360px] z-[56] md:hidden flex flex-col bg-background border-l border-border shadow-2xl overflow-y-auto"
+            >
                 {/* Accent orbs */}
                 <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute bottom-1/3 left-0 w-40 h-40 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
@@ -565,7 +568,6 @@ export function Navbar() {
             </>
           )}
         </AnimatePresence>
-      </header>
     </>
   );
 }
