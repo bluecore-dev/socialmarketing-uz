@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -47,25 +47,45 @@ const queryClient = new QueryClient({
   }
 });
 
-const pageVariants = {
-  initial: { opacity: 0, y: 16, filter: "blur(4px)" },
-  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-  exit: { opacity: 0, y: -8, filter: "blur(2px)" },
-};
-
-const pageTransition = { duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] };
-
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
-      variants={pageVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={pageTransition}
+      initial={{ opacity: 0, y: -18 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
+  );
+}
+
+function CurtainTransition() {
+  const [location] = useLocation();
+  const [show, setShow] = useState(false);
+  const prevRef = useRef(location);
+
+  useEffect(() => {
+    if (location === prevRef.current) return;
+    prevRef.current = location;
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    setShow(true);
+    const t = setTimeout(() => setShow(false), 520);
+    return () => clearTimeout(t);
+  }, [location]);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key="curtain"
+          initial={{ y: "-100%" }}
+          animate={{ y: "0%", transition: { duration: 0.26, ease: [0.76, 0, 0.24, 1] } }}
+          exit={{ y: "105%", transition: { duration: 0.26, ease: [0.76, 0, 0.24, 1] } }}
+          className="fixed inset-0 z-[200] bg-gradient-to-b from-primary via-secondary to-accent pointer-events-none"
+        />
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -124,7 +144,7 @@ function PublicRoutes() {
       <Navbar />
       <div className="flex-1">
         <Suspense fallback={<PageLoader2 />}>
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             <Switch key={location}>
               <Route path="/">
                 {() => <PageWrapper><Home /></PageWrapper>}
@@ -202,6 +222,7 @@ function App() {
             <LenisProvider />
             <PageLoader />
             <ScrollProgressBar />
+            <CurtainTransition />
             <CustomCursor />
             <Router />
           </AuthProvider>
