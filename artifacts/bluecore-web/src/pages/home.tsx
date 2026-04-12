@@ -1,66 +1,48 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Section } from "@/components/ui/Section";
 import { LeadForm } from "@/components/LeadForm";
 import { useGetServices, useGetCaseStudies } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import {
-  ArrowRight, ChevronDown, Star, Play,
-  TrendingUp, Users, Zap, BarChart2,
-  Target, Lightbulb, CheckCircle2, ArrowUpRight,
-  Instagram, Youtube, Search, PenTool, Megaphone, LineChart,
+  ArrowUpRight, ArrowRight, Star, TrendingUp, Zap,
+  BarChart2, Target, Lightbulb, PenTool, Megaphone, LineChart,
+  Search, CheckCircle2, Quote, ChevronDown,
 } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination, Autoplay } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useCounterAnimation } from "@/hooks/useCounterAnimation";
 import { useMagneticHover } from "@/hooks/useMagneticHover";
 
-/* ── helpers ─────────────────────────────────────────────────── */
-function getServiceContent(content: unknown, lang: string) {
-  if (!content) return { title: "", description: "", features: [] as string[] };
-  const obj = content as Record<string, Record<string, unknown>>;
-  const loc = obj[lang] || obj["uz"] || obj["en"] || obj["ru"] || {};
-  return {
-    title: (loc.title as string) || "",
-    description: (loc.description as string) || "",
-    features: (loc.features as string[]) || [],
-  };
+/* ─────────────────── helpers ─────────────────── */
+function getSvcContent(content: unknown, lang: string) {
+  if (!content) return { title: "", description: "" };
+  const o = content as Record<string, Record<string, unknown>>;
+  const l = o[lang] || o.uz || o.en || o.ru || {};
+  return { title: (l.title as string) || "", description: (l.description as string) || "" };
 }
-
 function getCaseContent(content: unknown, lang: string) {
   if (!content) return { title: "", description: "" };
-  const obj = content as Record<string, Record<string, unknown>>;
-  const loc = obj[lang] || obj["uz"] || obj["en"] || obj["ru"] || {};
-  return {
-    title: (loc.title as string) || "",
-    description: (loc.description as string) || "",
-  };
+  const o = content as Record<string, Record<string, unknown>>;
+  const l = o[lang] || o.uz || o.en || o.ru || {};
+  return { title: (l.title as string) || "", description: (l.description as string) || "" };
 }
 
-/* ── reusable animation wrapper ─────────────────────────────── */
-function Reveal({
-  children,
-  className,
-  delay = 0,
-  y = 32,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-  y?: number;
-}) {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.12 });
+/* ─────────────────── scroll reveal ─────────────────── */
+function R({
+  children, className, delay = 0, y = 40,
+}: { children: React.ReactNode; className?: string; delay?: number; y?: number }) {
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   return (
     <motion.div
       ref={ref as React.RefObject<HTMLDivElement>}
       initial={{ opacity: 0, y }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y }}
-      transition={{ duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.75, delay, ease: [0.16, 1, 0.3, 1] }}
       className={className}
     >
       {children}
@@ -68,149 +50,128 @@ function Reveal({
   );
 }
 
-/* ── counter stat ────────────────────────────────────────────── */
-function Stat({
-  end,
-  suffix = "",
-  label,
-  icon: Icon,
-}: {
-  end: number;
-  suffix?: string;
-  label: string;
-  icon: React.ElementType;
+/* ─────────────────── magnetic button ─────────────────── */
+function MagBtn({ href, className, children, variant = "solid" }: {
+  href: string; className?: string; children: React.ReactNode; variant?: "solid" | "outline" | "ghost";
 }) {
-  const { count, ref } = useCounterAnimation({ end, duration: 2200 });
+  const ref = useMagneticHover<HTMLDivElement>({ strength: 16 });
   return (
-    <div
-      ref={ref as React.RefObject<HTMLDivElement>}
-      className="flex flex-col gap-3"
-    >
-      <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-        <Icon className="w-5 h-5" />
-      </div>
-      <p className="text-4xl lg:text-5xl font-display font-black text-foreground tabular-nums leading-none">
-        {count}
-        <span className="text-primary">{suffix}</span>
-      </p>
-      <p className="text-sm text-muted-foreground font-medium leading-tight">{label}</p>
+    <div ref={ref}>
+      <Link href={href} className={cn(
+        "inline-flex items-center justify-center gap-2.5 font-bold transition-all duration-300",
+        variant === "solid" && "px-8 py-4 rounded-2xl bg-white text-[#0A0A0F] hover:bg-white/90 shadow-xl shadow-white/10 hover:-translate-y-1",
+        variant === "outline" && "px-8 py-4 rounded-2xl border-2 border-white/30 text-white hover:border-white hover:bg-white/5 hover:-translate-y-1",
+        variant === "ghost" && "px-6 py-3 rounded-xl text-white/70 hover:text-white",
+        className,
+      )}>
+        {children}
+      </Link>
     </div>
   );
 }
 
-/* ── scroll indicator ────────────────────────────────────────── */
-function ScrollIndicator() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.3, duration: 0.6 }}
-      className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-foreground/50 pointer-events-none"
-    >
-      <motion.div
-        animate={{ y: [0, 6, 0] }}
-        transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-      >
-        <ChevronDown className="w-5 h-5" />
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/* ── floating social proof badges ───────────────────────────── */
-function FloatingBadge({
-  className,
-  delay,
-  children,
-}: {
-  className?: string;
-  delay?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: delay ?? 0, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className={cn(
-        "absolute glass-panel rounded-2xl px-4 py-3 shadow-lg border border-white/20 text-sm font-semibold",
-        className,
-      )}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/* ── service icons map ───────────────────────────────────────── */
-const SERVICE_ICON_MAP: Record<string, React.ElementType> = {
-  instagram: Instagram,
-  youtube: Youtube,
-  facebook: Megaphone,
-  targeting: Target,
-  strategy: Lightbulb,
-  content: PenTool,
-  seo: Search,
-  analytics: LineChart,
-  smm: BarChart2,
+/* ─────────────────── service icons ─────────────────── */
+const SVC_ICONS: Record<string, React.ElementType> = {
+  instagram: Megaphone, youtube: TrendingUp, facebook: BarChart2,
+  targeting: Target, strategy: Lightbulb, content: PenTool,
+  seo: Search, analytics: LineChart, smm: BarChart2,
 };
-
-function getServiceIcon(slug?: string): React.ElementType {
+function getSvcIcon(slug?: string): React.ElementType {
   if (!slug) return BarChart2;
-  const key = slug.toLowerCase().replace(/-/g, "");
-  for (const [k, Icon] of Object.entries(SERVICE_ICON_MAP)) {
-    if (key.includes(k)) return Icon;
-  }
+  for (const [k, I] of Object.entries(SVC_ICONS))
+    if (slug.toLowerCase().includes(k)) return I;
   return BarChart2;
 }
 
-/* ── process steps ───────────────────────────────────────────── */
-const PROCESS_STEPS = [
-  {
-    num: "01",
-    icon: Search,
-    titleKey: "home.process1Title",
-    descKey: "home.process1Desc",
-    defaultTitle: "Tahlil",
-    defaultDesc: "Biznesingizni va raqobat muhitini chuqur o'rganamiz",
-  },
-  {
-    num: "02",
-    icon: Lightbulb,
-    titleKey: "home.process2Title",
-    descKey: "home.process2Desc",
-    defaultTitle: "Strategiya",
-    defaultDesc: "Maqsadlarga moslashtirilgan marketing rejasi tuzamiz",
-  },
-  {
-    num: "03",
-    icon: Zap,
-    titleKey: "home.process3Title",
-    descKey: "home.process3Desc",
-    defaultTitle: "Amalga oshirish",
-    defaultDesc: "Tez va samarali tarzda kampaniyani ishga tushiramiz",
-  },
-  {
-    num: "04",
-    icon: LineChart,
-    titleKey: "home.process4Title",
-    descKey: "home.process4Desc",
-    defaultTitle: "O'sish",
-    defaultDesc: "Natijalarni kuzatib, doimiy optimizatsiya qilamiz",
-  },
-];
+/* ─────────────────── service accordion row ─────────────────── */
+function SvcRow({ num, slug, icon: Icon, title, desc, delay }: {
+  num: string; slug: string; icon: React.ElementType; title: string; desc: string; delay: number;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <R delay={delay}>
+      <div
+        className={cn(
+          "group border-b border-white/10 cursor-pointer transition-all duration-400",
+          open ? "border-white/20" : "hover:border-white/20",
+        )}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        <div className="flex items-center justify-between py-6 md:py-7">
+          <div className="flex items-center gap-5 md:gap-8">
+            <span className="font-mono text-xs text-white/25 w-8 shrink-0">{num}</span>
+            <span className={cn(
+              "font-display font-bold text-xl md:text-3xl transition-colors duration-300",
+              open ? "text-white" : "text-white/60",
+            )}>
+              {title}
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0",
+              open ? "bg-primary text-white scale-110" : "bg-white/5 text-white/40",
+            )}>
+              <Icon className="w-4.5 h-4.5" />
+            </div>
+            <ArrowUpRight className={cn(
+              "w-5 h-5 transition-all duration-300",
+              open ? "text-primary rotate-0 scale-110" : "text-white/25 -rotate-12",
+            )} />
+          </div>
+        </div>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="pb-6 pl-16 md:pl-[3.75rem] flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <p className="text-white/50 max-w-xl text-base leading-relaxed flex-1">{desc}</p>
+                <Link
+                  href={`/services#${slug}`}
+                  className="shrink-0 px-5 py-2.5 rounded-xl bg-white/8 border border-white/15 text-white text-sm font-semibold hover:bg-primary hover:border-primary transition-all"
+                >
+                  Ko'proq bilish
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </R>
+  );
+}
 
-/* ── main component ──────────────────────────────────────────── */
+/* ─────────────────── animated stat ─────────────────── */
+function BigStat({ end, suffix, label }: { end: number; suffix: string; label: string }) {
+  const { count, ref } = useCounterAnimation({ end, duration: 2400 });
+  return (
+    <div ref={ref as React.RefObject<HTMLDivElement>} className="flex flex-col gap-2">
+      <p className="font-display font-black text-[clamp(3rem,7vw,6rem)] leading-none text-white tabular-nums">
+        {count}<span className="text-primary">{suffix}</span>
+      </p>
+      <p className="text-white/40 text-sm font-medium uppercase tracking-widest">{label}</p>
+    </div>
+  );
+}
+
+/* ─────────────────── main ─────────────────── */
 export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language.split("-")[0];
   const servicesQuery = useGetServices();
   const casesQuery = useGetCaseStudies({ featured: "true" });
 
-  const [timeLeft, setTimeLeft] = useState({ d: 5, h: 12, m: 30, s: 0 });
+  /* countdown */
+  const [timeLeft, setTimeLeft] = useState({ d: 4, h: 18, m: 55, s: 0 });
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((p) => {
+    const id = setInterval(() => {
+      setTimeLeft(p => {
         if (p.s > 0) return { ...p, s: p.s - 1 };
         if (p.m > 0) return { ...p, m: p.m - 1, s: 59 };
         if (p.h > 0) return { ...p, h: p.h - 1, m: 59, s: 59 };
@@ -218,518 +179,495 @@ export default function Home() {
         return p;
       });
     }, 1000);
-    return () => clearInterval(timer);
+    return () => clearInterval(id);
   }, []);
 
-  const ctaRef = useMagneticHover<HTMLDivElement>({ strength: 14 });
+  /* hero parallax */
   const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroScroll } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const heroY = useTransform(heroScroll, [0, 1], ["0%", "18%"]);
-  const heroOpacity = useTransform(heroScroll, [0, 0.75], [1, 0]);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+
+  /* cursor glow (desktop) */
+  const cursorX = useMotionValue(0);
+  const cursorY = useMotionValue(0);
+  const springX = useSpring(cursorX, { stiffness: 60, damping: 18 });
+  const springY = useSpring(cursorY, { stiffness: 60, damping: 18 });
+
+  useEffect(() => {
+    const move = (e: MouseEvent) => { cursorX.set(e.clientX); cursorY.set(e.clientY); };
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, [cursorX, cursorY]);
 
   return (
-    <main className="min-h-screen pt-[72px]">
+    <main>
 
-      {/* ═══════════════════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════
+          HERO  —  dark full-screen typographic
+      ═══════════���═══════════════════════════════════ */}
       <section
         ref={heroRef}
-        className="relative min-h-[100svh] flex items-center overflow-hidden bg-background"
+        className="relative min-h-[100svh] bg-[#08080E] flex flex-col justify-between overflow-hidden"
       >
-        {/* Background mesh gradient */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-accent/8 rounded-full blur-[100px]" />
-          <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-secondary/6 rounded-full blur-[80px]" />
-        </div>
-
+        {/* Cursor glow */}
         <motion.div
-          style={{ y: heroY, opacity: heroOpacity }}
-          className="container mx-auto px-4 md:px-6 relative z-10 py-16 md:py-24 w-full"
+          className="fixed top-0 left-0 w-[600px] h-[600px] pointer-events-none z-0 hidden lg:block"
+          style={{
+            x: springX,
+            y: springY,
+            translateX: "-50%",
+            translateY: "-50%",
+            background: "radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)",
+          }}
+        />
+
+        {/* Noise overlay */}
+        <div className="absolute inset-0 z-0 opacity-[0.035] pointer-events-none"
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundSize: "200px" }} />
+
+        {/* Top bar */}
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="relative z-10 flex items-center justify-between px-6 md:px-12 pt-28 pb-0"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Left column */}
-            <div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/20 text-primary font-semibold mb-7"
-              >
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                <span className="font-mono text-xs uppercase tracking-widest">
-                  {t("hero.badge")}
-                </span>
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 28 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="font-display font-black text-[clamp(2.4rem,5.5vw,4rem)] leading-[1.04] tracking-tight text-foreground mb-6"
-              >
-                {t("hero.title")}
-                <br />
-                <span className="text-gradient glow-text">{t("hero.titleHighlight")}</span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.36, ease: [0.16, 1, 0.3, 1] }}
-                className="text-lg text-muted-foreground mb-10 max-w-xl leading-relaxed"
-              >
-                {t("hero.subtitle")}
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.48, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col sm:flex-row gap-3 mb-12"
-              >
-                <div ref={ctaRef}>
-                  <Link
-                    href="/contact"
-                    className="shimmer-btn inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all text-base"
-                  >
-                    {t("hero.cta1")}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-                <Link
-                  href="/cases"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-border font-bold rounded-2xl hover:border-primary hover:text-primary transition-all text-base text-foreground"
-                >
-                  <Play className="w-4 h-4" />
-                  {t("hero.cta2")}
-                </Link>
-              </motion.div>
-
-              {/* Stats row */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.65, duration: 0.7 }}
-                className="flex flex-wrap gap-6 divide-x divide-border"
-              >
-                {[
-                  { end: 500, suffix: "+", label: t("hero.stat1") },
-                  { end: 98, suffix: "%", label: t("hero.stat2") },
-                  { end: 5, suffix: "+", label: t("hero.stat3") },
-                ].map((s, i) => {
-                  const { count, ref } = useCounterAnimation({ end: s.end, duration: 2000 });
-                  return (
-                    <div
-                      key={i}
-                      ref={ref as React.RefObject<HTMLDivElement>}
-                      className={cn("flex flex-col", i > 0 && "pl-6")}
-                    >
-                      <span className="font-display font-black text-3xl text-foreground tabular-nums">
-                        {count}
-                        <span className="text-primary">{s.suffix}</span>
-                      </span>
-                      <span className="text-xs text-muted-foreground font-medium mt-0.5">{s.label}</span>
-                    </div>
-                  );
-                })}
-              </motion.div>
-            </div>
-
-            {/* Right column — visual */}
-            <div className="hidden lg:flex items-center justify-center relative h-[520px]">
-              {/* Central glowing orb */}
-              <motion.div
-                animate={{ scale: [1, 1.06, 1], rotate: [0, 5, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute w-80 h-80 rounded-full bg-gradient-to-br from-primary/20 via-secondary/15 to-accent/20 blur-2xl"
-              />
-
-              {/* Grid of social media platforms */}
-              <div className="relative z-10 grid grid-cols-3 gap-4">
-                {[
-                  { Icon: Instagram, label: "Instagram", color: "from-pink-500 to-purple-600", delay: 0.2 },
-                  { Icon: Youtube, label: "YouTube", color: "from-red-500 to-red-600", delay: 0.35 },
-                  { Icon: BarChart2, label: "Targeting", color: "from-blue-500 to-blue-600", delay: 0.5 },
-                  { Icon: Target, label: "Ads", color: "from-orange-500 to-amber-500", delay: 0.45 },
-                  { Icon: PenTool, label: "Content", color: "from-primary to-secondary", delay: 0.3 },
-                  { Icon: LineChart, label: "Analytics", color: "from-teal-500 to-cyan-500", delay: 0.55 },
-                  { Icon: Lightbulb, label: "Strategy", color: "from-yellow-500 to-orange-500", delay: 0.4 },
-                  { Icon: Megaphone, label: "SMM", color: "from-secondary to-accent", delay: 0.25 },
-                  { Icon: TrendingUp, label: "Growth", color: "from-green-500 to-emerald-600", delay: 0.6 },
-                ].map(({ Icon, label, color, delay }, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, scale: 0.7, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    whileHover={{ scale: 1.12, y: -4 }}
-                    className="glass-panel rounded-2xl p-5 flex flex-col items-center gap-2 border border-white/20 cursor-default"
-                  >
-                    <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white", color)}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Floating badges */}
-              <FloatingBadge className="top-8 -left-8 text-foreground" delay={0.9}>
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Followers</p>
-                    <p className="text-sm font-bold text-green-500">+128%</p>
-                  </div>
-                </div>
-              </FloatingBadge>
-              <FloatingBadge className="bottom-16 -right-4 text-foreground" delay={1.1}>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-0.5">
-                    {[1,2,3,4,5].map(s => <Star key={s} className="w-3 h-3 fill-accent text-accent" />)}
-                  </div>
-                  <span className="text-xs text-muted-foreground">500+ mijoz</span>
-                </div>
-              </FloatingBadge>
-            </div>
+          <span className="font-mono text-xs text-white/25 uppercase tracking-[0.25em]">
+            SOCIAL MARKETING AGENCY · UZBEKISTAN
+          </span>
+          <div className="hidden md:flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="font-mono text-xs text-white/30">Mavjud: 3 slot</span>
           </div>
         </motion.div>
 
-        <ScrollIndicator />
+        {/* Main headline */}
+        <motion.div
+          style={{ y: heroY, opacity: heroOpacity }}
+          className="relative z-10 px-6 md:px-12 flex-1 flex flex-col justify-center py-12"
+        >
+          <div className="max-w-[1200px]">
+            {/* Label */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="inline-flex items-center gap-2.5 mb-8 md:mb-10"
+            >
+              <div className="h-px w-10 bg-primary" />
+              <span className="font-mono text-xs text-primary uppercase tracking-[0.2em]">
+                {t("hero.badge", "Digital · SMM · Targeting")}
+              </span>
+            </motion.div>
+
+            {/* H1 — ultra large */}
+            <div className="overflow-hidden mb-3">
+              <motion.h1
+                initial={{ y: "100%" }}
+                animate={{ y: "0%" }}
+                transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="font-display font-black leading-[0.92] tracking-[-0.03em] text-white"
+                style={{ fontSize: "clamp(3.2rem, 10.5vw, 9.5rem)" }}
+              >
+                {t("hero.title", "RAQAMLI")}
+              </motion.h1>
+            </div>
+            <div className="overflow-hidden mb-3">
+              <motion.h1
+                initial={{ y: "100%" }}
+                animate={{ y: "0%" }}
+                transition={{ duration: 0.9, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
+                className="font-display font-black leading-[0.92] tracking-[-0.03em]"
+                style={{
+                  fontSize: "clamp(3.2rem, 10.5vw, 9.5rem)",
+                  WebkitTextStroke: "1px rgba(255,255,255,0.25)",
+                  color: "transparent",
+                }}
+              >
+                MARKETING
+              </motion.h1>
+            </div>
+            <div className="overflow-hidden">
+              <motion.h1
+                initial={{ y: "100%" }}
+                animate={{ y: "0%" }}
+                transition={{ duration: 0.9, delay: 0.54, ease: [0.16, 1, 0.3, 1] }}
+                className="font-display font-black leading-[0.92] tracking-[-0.03em] text-white flex items-end gap-4 md:gap-6 flex-wrap"
+                style={{ fontSize: "clamp(3.2rem, 10.5vw, 9.5rem)" }}
+              >
+                {t("hero.titleHighlight", "AGENTLIGI")}
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.9, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="inline-flex items-center justify-center w-[clamp(4rem,8vw,8rem)] h-[clamp(4rem,8vw,8rem)] rounded-full bg-primary mb-1"
+                >
+                  <ArrowUpRight className="w-[35%] h-[35%] text-white" />
+                </motion.span>
+              </motion.h1>
+            </div>
+          </div>
+
+          {/* Bottom info row */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85, duration: 0.7 }}
+            className="mt-14 md:mt-16 flex flex-col md:flex-row items-start md:items-end justify-between gap-8"
+          >
+            <div className="max-w-md">
+              <p className="text-white/50 text-lg leading-relaxed">
+                {t("hero.subtitle", "Ijtimoiy tarmoqlar orqali brendingizni o'stiramiz. Real natijalarga kafolatli yondashuvimiz bilan.")}
+              </p>
+              <div className="flex flex-wrap gap-3 mt-6">
+                <MagBtn href="/contact" variant="solid">
+                  {t("hero.cta1", "Bepul konsultatsiya")}
+                  <ArrowRight className="w-4 h-4" />
+                </MagBtn>
+                <MagBtn href="/cases" variant="outline">
+                  {t("hero.cta2", "Ishlarimiz")}
+                </MagBtn>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-8 md:gap-12">
+              {[
+                { end: 500, suffix: "+", label: t("hero.stat1", "Mijozlar") },
+                { end: 98, suffix: "%", label: t("hero.stat2", "Mamnunlik") },
+                { end: 5, suffix: "+", label: t("hero.stat3", "Yil tajriba") },
+              ].map((s, i) => {
+                const { count, ref } = useCounterAnimation({ end: s.end, duration: 2000 });
+                return (
+                  <div key={i} ref={ref as React.RefObject<HTMLDivElement>} className="flex flex-col gap-1">
+                    <span className="font-display font-black text-3xl md:text-4xl text-white tabular-nums leading-none">
+                      {count}<span className="text-primary">{s.suffix}</span>
+                    </span>
+                    <span className="font-mono text-[11px] text-white/30 uppercase tracking-wider">{s.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll cue */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.4 }}
+          className="relative z-10 px-6 md:px-12 pb-8 flex items-center gap-3"
+        >
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+          >
+            <ChevronDown className="w-4 h-4 text-white/25" />
+          </motion.div>
+          <span className="font-mono text-[11px] text-white/20 uppercase tracking-[0.2em]">Scroll</span>
+        </motion.div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════
-          BRAND MARQUEE
-      ═══════════════════════════════════════════════════ */}
-      <div className="py-6 bg-muted/40 border-y border-border overflow-hidden">
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-muted/40 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-muted/40 to-transparent z-10 pointer-events-none" />
-        {[
-          { brands: ["Korzinka", "MacCoffee", "Payme", "Artel", "Uzum", "Beeline", "Alif", "Ucell", "Zoodpay"], dir: 1 },
-          { brands: ["Citilink", "MyTaxi", "Express24", "GreenWhite", "Orient", "Ipak Yuli", "NBU", "Hamkorbank"], dir: -1 },
-        ].map((row, ri) => (
-          <div key={ri} className="overflow-hidden relative mb-3 last:mb-0">
-            <motion.div
-              animate={{ x: row.dir === 1 ? ["0%", "-50%"] : ["-50%", "0%"] }}
-              transition={{ duration: 28 + ri * 5, ease: "linear", repeat: Infinity }}
-              className="flex whitespace-nowrap items-center gap-12"
-            >
-              {Array(6).fill(row.brands).flat().map((brand, i) => (
-                <span
-                  key={i}
-                  className="font-mono text-sm font-bold text-muted-foreground/25 uppercase tracking-[0.35em]"
-                >
-                  {brand}
-                </span>
-              ))}
-            </motion.div>
-          </div>
-        ))}
+      {/* ═══════════════════════════════════════════════
+          TICKER  —  neon moving strip
+      ═══════════════════════════════════════════════ */}
+      <div className="bg-primary py-4 overflow-hidden relative">
+        <motion.div
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ duration: 22, ease: "linear", repeat: Infinity }}
+          className="flex whitespace-nowrap items-center gap-10"
+        >
+          {Array(12).fill([
+            "500+ MIJOZ", "98% MAMNUNLIK", "5+ YIL TAJRIBA",
+            "INSTAGRAM", "YOUTUBE", "TARGETING", "CONTENT", "STRATEGIYA",
+          ]).flat().map((item, i) => (
+            <span key={i} className="font-display font-bold text-sm text-white/90 uppercase tracking-[0.12em] flex items-center gap-10">
+              {item}
+              <span className="text-white/30 mx-2">◆</span>
+            </span>
+          ))}
+        </motion.div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════
-          SERVICES
-      ═══════════════════════════════════════════════════ */}
-      <Section className="bg-background">
-        <div className="container mx-auto px-4 md:px-6">
-          <Reveal className="flex flex-col md:flex-row justify-between items-end mb-14 gap-6">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-accent mb-3">
-                {t("sections.services")}
+      {/* ═══════════════════════════════════════════════
+          SERVICES  —  dark accordion list
+      ═══════════════════════════════════════════════ */}
+      <section className="bg-[#0D0D14] py-24 md:py-32">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-16 md:mb-20">
+            <R>
+              <p className="font-mono text-xs text-primary uppercase tracking-[0.2em] mb-4">
+                {t("sections.services", "Xizmatlar")}
               </p>
-              <h2 className="font-display font-black text-[clamp(1.8rem,4vw,2.8rem)] leading-tight text-foreground">
-                {t("sections.services")}
+              <h2
+                className="font-display font-black text-white leading-[0.95] tracking-[-0.02em]"
+                style={{ fontSize: "clamp(2.4rem, 5.5vw, 4.5rem)" }}
+              >
+                Biz nima <br />
+                <span style={{ WebkitTextStroke: "1px rgba(255,255,255,0.3)", color: "transparent" }}>qilamiz?</span>
               </h2>
-              <p className="text-muted-foreground mt-3 max-w-lg">{t("home.servicesSubtitle")}</p>
-            </div>
-            <Link
-              href="/services"
-              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 border-2 border-border rounded-xl font-semibold text-sm hover:border-primary hover:text-primary transition-all"
-            >
-              {t("home.allCases", "Barchasini ko'rish")}
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
-          </Reveal>
-
-          {servicesQuery.isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[1,2,3,4,5,6].map(i => (
-                <div key={i} className="h-56 bg-muted/50 animate-pulse rounded-3xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {servicesQuery.data?.map((service, idx) => {
-                const sc = getServiceContent(service.content, lang);
-                const Icon = getServiceIcon(service.slug);
-                return (
-                  <Reveal key={service.id} delay={idx * 0.07}>
-                    <Link href={`/services#${service.slug}`}>
-                      <div className="group relative h-full p-7 rounded-3xl bg-card border border-border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/8 transition-all duration-400 overflow-hidden cursor-pointer">
-                        {/* Number */}
-                        <span className="absolute top-5 right-6 font-mono text-4xl font-black text-muted/30 group-hover:text-primary/10 transition-colors">
-                          {String(idx + 1).padStart(2, "0")}
-                        </span>
-
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 text-primary flex items-center justify-center mb-5 group-hover:from-primary group-hover:to-secondary group-hover:text-white transition-all duration-400 shadow-sm">
-                          <Icon className="w-5 h-5" />
-                        </div>
-
-                        <h3 className="font-display font-bold text-xl text-foreground mb-2 group-hover:text-primary transition-colors">
-                          {sc.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-5">
-                          {sc.description}
-                        </p>
-
-                        <div className="flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-3 transition-all">
-                          {t("common.readMore")}
-                          <ArrowRight className="w-4 h-4" />
-                        </div>
-                      </div>
-                    </Link>
-                  </Reveal>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </Section>
-
-      {/* ═══════════════════════════════════════════════════
-          STATS  –  dark section
-      ═══════════════════════════════════════════════════ */}
-      <section className="py-24 bg-foreground text-background overflow-hidden relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-[80px]" />
-        </div>
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <Reveal className="text-center mb-16">
-            <p className="font-mono text-xs uppercase tracking-widest text-accent mb-4">
-              {t("home.whyUsLabel", "Nima uchun biz?")}
-            </p>
-            <h2 className="font-display font-black text-[clamp(1.8rem,4vw,3rem)] text-white leading-tight">
-              {t("home.whyUsTitle", "Raqamlar o'zidan gapiradi")}
-            </h2>
-          </Reveal>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16">
-            <Reveal delay={0}><Stat end={500} suffix="+" label={t("hero.stat1")} icon={Users} /></Reveal>
-            <Reveal delay={0.1}><Stat end={98} suffix="%" label={t("hero.stat2")} icon={TrendingUp} /></Reveal>
-            <Reveal delay={0.2}><Stat end={5} suffix="+" label={t("hero.stat3")} icon={Zap} /></Reveal>
-            <Reveal delay={0.3}><Stat end={120} suffix="M+" label={t("home.stat4", "Umumiy reach")} icon={BarChart2} /></Reveal>
+            </R>
+            <R delay={0.15} className="md:max-w-xs md:pt-14">
+              <p className="text-white/40 leading-relaxed">
+                {t("home.servicesSubtitle", "Har bir platforma uchun alohida strategiya va kafolatlangan natija bilan ishlaymiz.")}
+              </p>
+            </R>
           </div>
 
-          <Reveal className="mt-16 flex flex-wrap gap-3 justify-center" delay={0.15}>
-            {[
-              t("home.whyTag1", "Kafolatlangan natija"),
-              t("home.whyTag2", "24/7 qo'llab-quvvatlash"),
-              t("home.whyTag3", "Real hisobotlar"),
-              t("home.whyTag4", "Tajribali jamoa"),
-              t("home.whyTag5", "Tez ishga tushirish"),
-            ].map((tag, i) => (
-              <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 border border-white/10 text-sm text-white/80">
-                <CheckCircle2 className="w-3.5 h-3.5 text-accent shrink-0" />
-                {tag}
+          {/* Accordion rows */}
+          <div className="border-t border-white/10">
+            {servicesQuery.isLoading ? (
+              <div className="space-y-px">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="h-20 bg-white/3 animate-pulse rounded-lg" />
+                ))}
               </div>
-            ))}
-          </Reveal>
+            ) : (
+              servicesQuery.data?.map((svc, i) => {
+                const sc = getSvcContent(svc.content, lang);
+                return (
+                  <SvcRow
+                    key={svc.id}
+                    num={String(i + 1).padStart(2, "0")}
+                    slug={svc.slug || ""}
+                    icon={getSvcIcon(svc.slug)}
+                    title={sc.title}
+                    desc={sc.description}
+                    delay={i * 0.05}
+                  />
+                );
+              })
+            )}
+          </div>
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════
-          HOW WE WORK  —  process
-      ═══════════════════════════════════════════════════ */}
-      <Section className="bg-muted/30">
-        <div className="container mx-auto px-4 md:px-6">
-          <Reveal className="text-center max-w-2xl mx-auto mb-16">
-            <p className="font-mono text-xs uppercase tracking-widest text-accent mb-3">
+      {/* ═══════════════════════════════════════════════
+          STATS  —  brutalist dark
+      ═══════════════════════════════════════════════ */}
+      <section className="bg-[#08080E] py-24 md:py-32 border-t border-white/5">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 md:gap-6 divide-y lg:divide-y-0 lg:divide-x divide-white/8">
+            <R className="lg:pr-10"><BigStat end={500} suffix="+" label={t("hero.stat1", "Mijozlar")} /></R>
+            <R delay={0.1} className="lg:px-10 pt-10 lg:pt-0"><BigStat end={98} suffix="%" label={t("hero.stat2", "Mamnunlik")} /></R>
+            <R delay={0.2} className="lg:px-10 pt-10 lg:pt-0"><BigStat end={120} suffix="M+" label={t("home.stat4", "Umumiy reach")} /></R>
+            <R delay={0.3} className="lg:pl-10 pt-10 lg:pt-0"><BigStat end={5} suffix="+" label={t("hero.stat3", "Yil tajriba")} /></R>
+          </div>
+
+          <R delay={0.1} className="mt-20 pt-12 border-t border-white/8">
+            <div className="flex flex-wrap gap-3">
+              {[
+                t("home.whyTag1", "Kafolatlangan natija"),
+                t("home.whyTag2", "24/7 qo'llab-quvvatlash"),
+                t("home.whyTag3", "Real hisobotlar"),
+                t("home.whyTag4", "Tajribali jamoa"),
+                t("home.whyTag5", "Tez ishga tushirish"),
+                t("home.whyTag6", "Shaffof narxlar"),
+              ].map((tag, i) => (
+                <div key={i} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 cursor-default">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="text-sm text-white/60 font-medium">{tag}</span>
+                </div>
+              ))}
+            </div>
+          </R>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════
+          HOW WE WORK  —  numbered horizontal steps
+      ═══════════════════════════════════════════════ */}
+      <section className="bg-[#0D0D14] py-24 md:py-32 border-t border-white/5">
+        <div className="container mx-auto px-6 md:px-12">
+          <R className="mb-16 md:mb-20">
+            <p className="font-mono text-xs text-primary uppercase tracking-[0.2em] mb-4">
               {t("home.processLabel", "Qanday ishlashimiz")}
             </p>
-            <h2 className="font-display font-black text-[clamp(1.8rem,4vw,2.8rem)] text-foreground leading-tight">
-              {t("home.processTitle", "Oddiy 4 qadamda natijaga")}
+            <h2
+              className="font-display font-black text-white leading-[0.95] tracking-[-0.02em]"
+              style={{ fontSize: "clamp(2.4rem, 5.5vw, 4.5rem)" }}
+            >
+              4 qadamda <br />
+              <span className="text-primary">natijaga</span>
             </h2>
-          </Reveal>
+          </R>
 
-          <div className="relative">
-            {/* Connector line (desktop) */}
-            <div className="hidden lg:block absolute top-16 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {PROCESS_STEPS.map((step, i) => {
-                const Icon = step.icon;
-                return (
-                  <Reveal key={i} delay={i * 0.1}>
-                    <div className="flex flex-col items-center text-center lg:items-center">
-                      <div className="relative mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/25 text-white">
-                          <Icon className="w-7 h-7" />
-                        </div>
-                        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border-2 border-primary flex items-center justify-center">
-                          <span className="font-mono text-[10px] font-black text-primary">{step.num}</span>
-                        </div>
-                      </div>
-                      <h3 className="font-display font-bold text-xl text-foreground mb-2">
-                        {t(step.titleKey, step.defaultTitle)}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {t(step.descKey, step.defaultDesc)}
-                      </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-white/8 rounded-3xl overflow-hidden">
+            {[
+              { n: "01", icon: Search, title: t("home.process1Title", "Tahlil"), desc: t("home.process1Desc", "Biznesingiz, raqobatchilar va auditoriyani chuqur o'rganamiz") },
+              { n: "02", icon: Lightbulb, title: t("home.process2Title", "Strategiya"), desc: t("home.process2Desc", "Maqsadlarga moslashtirilgan marketing yo'l xaritasini tuzamiz") },
+              { n: "03", icon: Zap, title: t("home.process3Title", "Ishga tushirish"), desc: t("home.process3Desc", "Tez va samarali tarzda barcha kanallarni aktivlashtirамiz") },
+              { n: "04", icon: LineChart, title: t("home.process4Title", "O'sish"), desc: t("home.process4Desc", "Natijalarni kuzatib, doimiy optimizatsiya va o'sish ta'minlaymiz") },
+            ].map(({ n, icon: Icon, title, desc }, i) => (
+              <R key={i} delay={i * 0.1}>
+                <div className={cn(
+                  "p-8 md:p-10 h-full border-white/8 hover:bg-white/3 transition-colors duration-300",
+                  i < 3 && "border-b md:border-b-0 md:border-r",
+                )}>
+                  <div className="flex items-start justify-between mb-8">
+                    <span className="font-mono text-5xl font-black text-white/8 leading-none">{n}</span>
+                    <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                      <Icon className="w-5 h-5" />
                     </div>
-                  </Reveal>
-                );
-              })}
-            </div>
+                  </div>
+                  <h3 className="font-display font-bold text-xl text-white mb-3">{title}</h3>
+                  <p className="text-white/40 text-sm leading-relaxed">{desc}</p>
+                </div>
+              </R>
+            ))}
           </div>
         </div>
-      </Section>
+      </section>
 
-      {/* ═══════════════════════════════════════════════════
-          CASE STUDIES
-      ═══════════════════════════════════════════════════ */}
-      <Section className="bg-background">
-        <div className="container mx-auto px-4 md:px-6">
-          <Reveal className="flex flex-col md:flex-row justify-between items-end mb-14 gap-6">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-accent mb-3">
-                {t("sections.cases")}
+      {/* ═══════════════════════════════════════════════
+          CASE STUDIES  —  light section
+      ═══════════════════════════════════════════════ */}
+      <section className="bg-[#F4F4F7] py-24 md:py-32">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-14">
+            <R>
+              <p className="font-mono text-xs text-primary uppercase tracking-[0.2em] mb-4">
+                {t("sections.cases", "Keyslar")}
               </p>
-              <h2 className="font-display font-black text-[clamp(1.8rem,4vw,2.8rem)] text-foreground leading-tight">
-                {t("sections.cases")}
+              <h2
+                className="font-display font-black text-[#0A0A0F] leading-[0.95] tracking-[-0.02em]"
+                style={{ fontSize: "clamp(2.4rem, 5.5vw, 4.5rem)" }}
+              >
+                Natijalarni <br />ko'rsatamiz
               </h2>
-              <p className="text-muted-foreground mt-3 max-w-lg">{t("home.casesSubtitle")}</p>
-            </div>
-            <Link
-              href="/cases"
-              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 border-2 border-border rounded-xl font-semibold text-sm hover:border-primary hover:text-primary transition-all"
-            >
-              {t("home.allCases")}
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
-          </Reveal>
+            </R>
+            <R delay={0.1}>
+              <Link
+                href="/cases"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-[#0A0A0F]/20 text-[#0A0A0F] font-bold text-sm hover:border-primary hover:text-primary transition-all"
+              >
+                Barcha keyslar
+                <ArrowUpRight className="w-4 h-4" />
+              </Link>
+            </R>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(casesQuery.data?.slice(0, 3) || [1, 2, 3]).map((cs, idx) => {
-              const isPlaceholder = typeof cs === "number";
-              const item = isPlaceholder ? null : cs as typeof cs & { content?: unknown; industry?: string };
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {(casesQuery.data?.slice(0, 3) || [0,1,2]).map((cs, idx) => {
+              const item = typeof cs === "number" ? null : cs as typeof cs & { content?: unknown; industry?: string };
               const cc = item ? getCaseContent(item.content, lang) : null;
-
+              const imgs = [
+                "photo-1611162617474-5b21e879e113",
+                "photo-1542744095-fcf48d80b0fd",
+                "photo-1551288049-bebda4e38f71",
+              ];
               return (
-                <Reveal key={idx} delay={idx * 0.1}>
-                  <div className="group relative rounded-3xl overflow-hidden h-[380px] bg-muted">
+                <R key={idx} delay={idx * 0.1}>
+                  <div className="group relative rounded-3xl overflow-hidden aspect-[4/5] bg-[#E0E0E6] cursor-pointer">
                     <img
-                      src={`https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=75`}
-                      alt={item?.client || ""}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      src={`https://images.unsplash.com/${imgs[idx]}?w=800&q=80`}
+                      alt=""
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
                       loading="lazy"
                     />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                    {/* Default overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                    {/* Content */}
-                    <div className="absolute inset-0 flex flex-col justify-end p-7">
+                    {/* Bottom content */}
+                    <div className="absolute inset-x-0 bottom-0 p-7">
                       {item && (
-                        <span className="font-mono text-xs text-accent uppercase tracking-widest mb-2">
+                        <span className="font-mono text-xs text-primary uppercase tracking-widest mb-2 block">
                           {item.industry}
                         </span>
                       )}
                       <h3 className="font-display font-bold text-xl text-white mb-2">
-                        {item?.client || `Case ${idx + 1}`}
+                        {item?.client || `Keys ${idx + 1}`}
                       </h3>
-                      <p className="text-white/70 text-sm line-clamp-2 mb-4">
+                      <p className="text-white/60 text-sm line-clamp-2 mb-4">
                         {cc?.description || ""}
                       </p>
+                      <div className="flex flex-wrap gap-2">
+                        {item && Object.entries(item.metrics || {}).slice(0, 2).map(([k, v]) => (
+                          <span key={k} className="px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-semibold border border-white/10">
+                            {String(v)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
-                      {/* Metrics pills */}
-                      {item && Object.entries(item.metrics || {}).slice(0, 3).map(([k, v]) => (
-                        <span
-                          key={k}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white text-xs font-semibold mr-2 mb-2 backdrop-blur-sm"
-                        >
-                          <TrendingUp className="w-3 h-3 text-accent" />
-                          {String(v)}
-                        </span>
-                      ))}
-
+                    {/* Hover: full overlay with link */}
+                    <div className="absolute inset-0 bg-primary/90 opacity-0 group-hover:opacity-100 transition-opacity duration-400 flex items-center justify-center">
                       <Link
                         href="/cases"
-                        className="mt-2 inline-flex items-center gap-2 text-accent font-semibold text-sm opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                        className="flex flex-col items-center gap-3 text-white"
                       >
-                        {t("home.caseReadMore", "Batafsil ko'rish")}
-                        <ArrowRight className="w-4 h-4" />
+                        <div className="w-16 h-16 rounded-full border-2 border-white/50 flex items-center justify-center">
+                          <ArrowUpRight className="w-7 h-7" />
+                        </div>
+                        <span className="font-bold text-lg">Ko'rish</span>
                       </Link>
                     </div>
                   </div>
-                </Reveal>
+                </R>
               );
             })}
           </div>
         </div>
-      </Section>
+      </section>
 
-      {/* ═══════════════════════════════════════════════════
-          TESTIMONIALS
-      ═══════════════════════════════════════════════════ */}
-      <Section className="bg-muted/30 overflow-hidden">
-        <div className="container mx-auto px-4 md:px-6">
-          <Reveal className="text-center mb-14">
-            <p className="font-mono text-xs uppercase tracking-widest text-accent mb-3">
-              {t("sections.testimonials")}
-            </p>
-            <h2 className="font-display font-black text-[clamp(1.8rem,4vw,2.8rem)] text-foreground leading-tight">
-              {t("sections.testimonials")}
-            </h2>
-          </Reveal>
+      {/* ═══════════════════════════════════════════════
+          TESTIMONIALS  —  dark, magazine style
+      ═══════════════════════════════════════════════ */}
+      <section className="bg-[#08080E] py-24 md:py-32 border-t border-white/5 overflow-hidden">
+        <div className="container mx-auto px-6 md:px-12">
+          <R className="flex items-center gap-5 mb-16">
+            <Quote className="w-10 h-10 text-primary/40 shrink-0" />
+            <div>
+              <p className="font-mono text-xs text-primary uppercase tracking-[0.2em] mb-1">
+                {t("sections.testimonials", "Fikrlar")}
+              </p>
+              <h2
+                className="font-display font-black text-white leading-none tracking-[-0.02em]"
+                style={{ fontSize: "clamp(2rem, 4.5vw, 3.5rem)" }}
+              >
+                Mijozlarimiz gapiradi
+              </h2>
+            </div>
+          </R>
 
           <Swiper
-            modules={[Pagination, Autoplay]}
-            spaceBetween={20}
+            modules={[Autoplay, Pagination]}
+            spaceBetween={16}
             slidesPerView={1}
             breakpoints={{
-              640: { slidesPerView: 1.3, centeredSlides: true },
-              900: { slidesPerView: 2, centeredSlides: false },
-              1200: { slidesPerView: 3, centeredSlides: false },
+              768: { slidesPerView: 1.5 },
+              1024: { slidesPerView: 2.3 },
+              1280: { slidesPerView: 3 },
             }}
+            autoplay={{ delay: 4000, disableOnInteraction: false }}
             pagination={{ clickable: true }}
-            autoplay={{ delay: 4200, disableOnInteraction: false }}
             grabCursor
-            className="pb-12"
+            className="pb-12 !overflow-visible"
           >
             {[
-              { name: "Sardor Alimov", role: "CEO, TechStore UZ", img: "photo-1472099645785-5658abf4ff4e" },
-              { name: "Dilnoza Yusupova", role: "Marketing Director, Artel", img: "photo-1438761681033-6461ffad8d80" },
-              { name: "Bobur Toshmatov", role: "Founder, AgroMarket", img: "photo-1507003211169-0a1dd7228f2d" },
-              { name: "Malika Rahimova", role: "CMO, Payme", img: "photo-1494790108377-be9c29b29330" },
-              { name: "Jasur Mirzayev", role: "CEO, TechHub Uzbekistan", img: "photo-1506794778202-cad84cf45f1d" },
-            ].map((person, i) => (
+              { name: "Sardor Alimov", role: "CEO, TechStore UZ", img: "photo-1472099645785-5658abf4ff4e", q: "BlueCore bilan ishlashdan oldin Instagram'da 2000 ta followermiz bor edi. 6 oyda 45,000 ga yetdik!" },
+              { name: "Dilnoza Yusupova", role: "Marketing Dir, Artel", img: "photo-1438761681033-6461ffad8d80", q: "Targeting kampaniyasi orqali CPL ni 3 barobar tushirdik. Kasb mutaxassislari!" },
+              { name: "Bobur Toshmatov", role: "Founder, AgroMarket", img: "photo-1507003211169-0a1dd7228f2d", q: "Strategiyalari juda aniq va hisobotlari shaffof. Har oyda o'sishni ko'rib turamiz." },
+              { name: "Malika Rahimova", role: "CMO, Payme", img: "photo-1494790108377-be9c29b29330", q: "Content sifati va ijodkorlik bo'yicha Markaziy Osiyo'da eng yaxshi jamoa deb hisoblayman." },
+              { name: "Jasur Mirzayev", role: "CEO, TechHub UZ", img: "photo-1506794778202-cad84cf45f1d", q: "Reklama xarajatlarimiz 40% kamaydi, konversiya esa 2.5x oshdi. Natija so'zlaydi." },
+            ].map((p, i) => (
               <SwiperSlide key={i}>
-                <div className="bg-card rounded-3xl p-7 border border-border h-full flex flex-col hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                  <div className="flex gap-1 text-accent mb-5">
-                    {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-current" />)}
+                <div className="rounded-3xl border border-white/8 bg-white/3 p-7 md:p-8 flex flex-col gap-6 h-full hover:border-primary/25 hover:bg-white/5 transition-all duration-300">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-primary fill-primary" />)}
                   </div>
-                  <p className="text-foreground text-base leading-relaxed flex-1 mb-7 italic">
-                    "{t("home.testimonialQuote")}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-primary/20 shrink-0">
-                      <img
-                        src={`https://images.unsplash.com/${person.img}?w=96&q=75`}
-                        alt={person.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                  <p className="text-white/70 leading-relaxed italic flex-1 text-base">"{p.q}"</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-white/8">
+                    <img
+                      src={`https://images.unsplash.com/${p.img}?w=80&q=75`}
+                      alt={p.name}
+                      loading="lazy"
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
+                    />
                     <div>
-                      <p className="font-bold text-foreground text-sm">{person.name}</p>
-                      <p className="font-mono text-xs text-muted-foreground">{person.role}</p>
+                      <p className="font-bold text-white text-sm">{p.name}</p>
+                      <p className="font-mono text-xs text-white/30">{p.role}</p>
                     </div>
                   </div>
                 </div>
@@ -737,65 +675,75 @@ export default function Home() {
             ))}
           </Swiper>
         </div>
-      </Section>
+      </section>
 
-      {/* ═══════════════════════════════════════════════════
-          CTA  —  countdown + form
-      ═══════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-secondary to-primary/90 py-24">
+      {/* ═══════════════════════════════════════════════
+          CTA  —  full-width dark with gradient
+      ═══════════════════════════════════════════════ */}
+      <section className="relative bg-[#0D0D14] py-24 md:py-32 overflow-hidden border-t border-white/5">
+        {/* Background gradient */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-accent/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] bg-white/8 rounded-full blur-[100px]" />
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/8 rounded-full blur-[100px]" />
         </div>
 
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <Reveal className="text-white">
-              <p className="font-mono text-xs uppercase tracking-widest text-white/60 mb-4">
-                {t("home.countdownLabel")}
+        <div className="container mx-auto px-6 md:px-12 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            {/* Left */}
+            <R>
+              <p className="font-mono text-xs text-primary uppercase tracking-[0.2em] mb-5">
+                {t("home.countdownLabel", "Chegirma tugashiga")}
               </p>
-              <h2 className="font-display font-black text-[clamp(2rem,4.5vw,3.2rem)] leading-tight mb-6">
-                {t("home.ctaTitle")}
+              <h2
+                className="font-display font-black text-white leading-[0.95] tracking-[-0.02em] mb-8"
+                style={{ fontSize: "clamp(2.4rem, 5.5vw, 4.5rem)" }}
+              >
+                {t("home.ctaTitle", "Proyektingizni")} <br />
+                <span style={{ WebkitTextStroke: "1px rgba(255,255,255,0.3)", color: "transparent" }}>
+                  bugun boshlang
+                </span>
               </h2>
-              <p className="text-white/75 text-lg mb-10 max-w-lg leading-relaxed">
-                {t("home.ctaSubtitle")}
+              <p className="text-white/45 text-lg leading-relaxed mb-10 max-w-md">
+                {t("home.ctaSubtitle", "Bepul konsultatsiya oling va birinchi oyda natijaga erishish yo'lida birinchi qadamni qo'ying.")}
               </p>
 
               {/* Countdown */}
-              <div className="inline-flex gap-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-4">
+              <div className="inline-flex gap-2 md:gap-3 p-4 rounded-2xl border border-white/10 bg-white/4 backdrop-blur-sm">
                 {[
-                  { l: t("home.countdown.days"), v: timeLeft.d },
-                  { l: t("home.countdown.hours"), v: timeLeft.h },
-                  { l: t("home.countdown.minutes"), v: timeLeft.m },
-                  { l: t("home.countdown.seconds"), v: timeLeft.s },
-                ].map((time, i) => (
-                  <div key={i} className="flex flex-col items-center w-16">
+                  { l: t("home.countdown.days", "kun"), v: timeLeft.d },
+                  { l: t("home.countdown.hours", "soat"), v: timeLeft.h },
+                  { l: t("home.countdown.minutes", "daqiqa"), v: timeLeft.m },
+                  { l: t("home.countdown.seconds", "soniya"), v: timeLeft.s },
+                ].map((item, i) => (
+                  <div key={i} className="flex flex-col items-center w-14 md:w-16">
                     <AnimatePresence mode="wait">
                       <motion.span
-                        key={time.v}
-                        initial={{ y: -12, opacity: 0 }}
+                        key={item.v}
+                        initial={{ y: -8, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 12, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="font-mono text-3xl font-black text-white leading-none"
+                        exit={{ y: 8, opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        className="font-mono font-black text-2xl md:text-3xl text-white leading-none"
                       >
-                        {String(time.v).padStart(2, "0")}
+                        {String(item.v).padStart(2, "0")}
                       </motion.span>
                     </AnimatePresence>
-                    <span className="font-mono text-[10px] text-white/50 uppercase mt-1">{time.l}</span>
+                    <span className="font-mono text-[10px] text-white/30 uppercase mt-1.5">{item.l}</span>
                   </div>
                 ))}
               </div>
-            </Reveal>
+            </R>
 
-            <Reveal delay={0.15}>
-              <div className="bg-background/10 backdrop-blur-md rounded-3xl border border-white/20 p-8">
+            {/* Right — form */}
+            <R delay={0.15}>
+              <div className="rounded-3xl border border-white/10 bg-white/4 backdrop-blur-sm p-8 md:p-10">
                 <LeadForm source="home_footer" />
               </div>
-            </Reveal>
+            </R>
           </div>
         </div>
       </section>
+
     </main>
   );
 }
