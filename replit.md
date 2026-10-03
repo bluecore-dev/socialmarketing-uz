@@ -29,7 +29,7 @@ Full-stack SMM agency website: React+Vite frontend (3 languages: uz/ru/en), Expr
 - **prefers-reduced-motion**: All animations and Lenis smooth scroll disabled/simplified
 
 ## Admin Access
-- Email: `admin@bluecore.uz`, Password: `admin1234`, Role: `admin`
+- Admin account: created by the seed script; credentials are never stored in the repository.
 - Admin panel: `/admin` (dark theme, requires admin or manager role)
 
 ## Auth Implementation
